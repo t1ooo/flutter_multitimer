@@ -1,3 +1,8 @@
-arb-dir: lib/src/localization
+arb-dir: lib/src/l10n
 template-arb-file: app_en.arb
 output-localization-file: app_localizations.dart
+output-dir: lib/src/l10n/gen
+preferred-supported-locales:
+  - en
+use-deferred-loading: false
+synthetic-package: false
