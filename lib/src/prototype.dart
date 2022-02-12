@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -117,6 +119,90 @@ class TimersCubit extends Cubit<TimersCubitState> {
   Future<void> resume(Timer timer) async {}
 }
 
+class TimerCubitState {
+  final Timer timer;
+  final Object? error;
+
+  TimerCubitState({
+    required this.timer,
+    this.error,
+  });
+}
+
+class TimerCubit extends Cubit<TimerCubitState> {
+  TimerCubit(Timer timer, [this.ticker = const Ticker()])
+      : super(TimerCubitState(timer: timer)) {
+    if (timer.status == TimerStatus.start) {
+      start();
+    }
+  }
+
+  final Ticker ticker;
+  StreamSubscription<Duration>? _tickerSub;
+
+  Future<void> start() async {
+    emit(TimerCubitState(timer: state.timer.copyWith(status: TimerStatus.start)
+        /* start.timerItem,
+      TimerStatus.busy,
+      start.timerItem.duration, */
+        ));
+    await _tickerSub?.cancel();
+    _tickerSub =
+        ticker.tick(state.timer.duration).listen((duration) => _tick(duration));
+  }
+
+  Future<void> stop() async {
+    emit(
+      TimerCubitState(
+        timer: state.timer
+            .copyWith(status: TimerStatus.stop, countdown: state.timer.duration),
+      ),
+    );
+    await _tickerSub?.cancel();
+  }
+
+  Future<void> pause() async {
+    emit(
+      TimerCubitState(
+        timer: state.timer.copyWith(status: TimerStatus.pause),
+      ),
+    );
+    _tickerSub?.pause();
+  }
+
+  Future<void> resume() async {
+    emit(
+      TimerCubitState(
+        timer: state.timer.copyWith(status: TimerStatus.start),
+      ),
+    );
+    _tickerSub?.resume();
+  }
+
+  Future<void> _tick(Duration duration) async {
+    if (duration.inSeconds > 0) {
+      emit(TimerCubitState(timer: state.timer.copyWith(countdown: duration)));
+    } else {
+      // emit(TimerCubitState(
+      //     timer: state.timer
+      //         .copyWith(status: TimerStatus.stop, countdown: duration)));
+      // await _tickerSub?.cancel();
+      stop();
+    }
+  }
+}
+
+class Ticker {
+  const Ticker();
+  Stream<Duration> tick(Duration duration) {
+    final ticks = duration.inSeconds;
+    return Stream.periodic(
+      Duration(seconds: 1),
+      (x) => Duration(seconds: ticks - x - 1),
+    ).take(ticks);
+  }
+}
+
 // final timersCubit = TimersCubit()..load();
 
 // UI --------------------------------------
@@ -173,7 +259,11 @@ class TimerList extends StatelessWidget {
       // direction: Axis.vertical,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final timer in cubit.state.timers!) TimerListItem(timer: timer),
+        for (final timer in cubit.state.timers!)
+          BlocProvider(
+            create: (_) => TimerCubit(timer),
+            child: TimerListItem(),
+          ),
       ],
     );
   }
@@ -182,21 +272,17 @@ class TimerList extends StatelessWidget {
 class TimerListItem extends StatelessWidget {
   TimerListItem({
     Key? key,
-    required this.timer,
   }) : super(key: key);
-
-  final Timer timer;
 
   @override
   Widget build(BuildContext context) {
-    final cubit = context.watch<TimersCubit>();
+    final cubit = context.watch<TimerCubit>();
 
     if (cubit.state.error != null) {
       return Text(cubit.state.error.toString());
     }
-    if (cubit.state.timers == null) {
-      return Center(child: CircularProgressIndicator());
-    }
+
+    final timer = cubit.state.timer;
 
     const iconSize = 45.0;
     final dateFormat = DateFormat('HH:mm:ss');
@@ -253,35 +339,35 @@ class TimerListItem extends StatelessWidget {
                         ElevatedButton(
                           child: Icon(Icons.play_arrow, size: iconSize),
                           onPressed: () {
-                            cubit.start(timer);
+                            cubit.start();
                           },
                         )
                       ] else if (timer.status == TimerStatus.pause) ...[
                         ElevatedButton(
                           child: Icon(Icons.stop, size: iconSize),
                           onPressed: () {
-                            cubit.stop(timer);
+                            cubit.stop();
                           },
                         ),
                         SizedBox(width: 10),
                         ElevatedButton(
                           child: Icon(Icons.play_arrow, size: iconSize),
                           onPressed: () {
-                            cubit.start(timer);
+                            cubit.start();
                           },
                         ),
                       ] else ...[
                         ElevatedButton(
                           child: Icon(Icons.stop, size: iconSize),
                           onPressed: () {
-                            cubit.stop(timer);
+                            cubit.stop();
                           },
                         ),
                         SizedBox(width: 10),
                         ElevatedButton(
                           child: Icon(Icons.pause, size: iconSize),
                           onPressed: () {
-                            cubit.pause(timer);
+                            cubit.pause();
                           },
                         ),
                       ],
