@@ -1,7 +1,128 @@
+import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-// const pagePadding = EdgeInsets.all(20);
-const pagePadding = EdgeInsets.symmetric(vertical: 30, horizontal: 20);
+DateTime dateTime({
+  int year = 0,
+  int month = 1,
+  int day = 1,
+  int hour = 0,
+  int minute = 0,
+  int second = 0,
+  int millisecond = 0,
+  int microsecond = 0,
+}) {
+  return DateTime(
+    year,
+    month,
+    day,
+    hour,
+    minute,
+    second,
+    millisecond,
+    microsecond,
+  );
+}
+
+enum TimerStatus {
+  // ready,
+  start,
+  stop,
+  pause,
+  // resume,
+}
+
+class Timer {
+  final String id;
+  final String name;
+  final Duration duration;
+  final Duration countdown;
+  final TimerStatus status;
+
+  Timer({
+    required this.id,
+    required this.name,
+    required this.duration,
+    required this.countdown,
+    required this.status,
+  });
+
+  Timer copyWith({
+    String? id,
+    String? name,
+    Duration? duration,
+    Duration? countdown,
+    TimerStatus? status,
+  }) {
+    return Timer(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      duration: duration ?? this.duration,
+      countdown: countdown ?? this.countdown,
+      status: status ?? this.status,
+    );
+  }
+}
+
+class TimersCubitState {
+  final List<Timer>? timers;
+  final Object? error;
+
+  TimersCubitState({
+    this.timers,
+    this.error,
+  });
+}
+
+class TimersCubit extends Cubit<TimersCubitState> {
+  TimersCubit() : super(TimersCubitState());
+
+  // void increment() => emit(state + 1);
+  // void decrement() => emit(state - 1);
+  Future<void> load() async {
+    await Future.delayed(Duration(milliseconds: 500), null);
+    emit(TimersCubitState(timers: [
+      Timer(
+        id: 'a',
+        name: 'stop',
+        duration: Duration(minutes: 5),
+        countdown: Duration(seconds: 60 * 60 * 2),
+        status: TimerStatus.stop,
+      ),
+      Timer(
+        id: 'b',
+        name: 'start',
+        duration: Duration(minutes: 5),
+        countdown: Duration(seconds: 125),
+        status: TimerStatus.start,
+      ),
+      Timer(
+        id: 'c',
+        name: 'pause',
+        duration: Duration(minutes: 5),
+        countdown: Duration(seconds: 35),
+        status: TimerStatus.pause,
+      ),
+    ]));
+  }
+
+  Future<void> create(Timer timer) async {}
+  Future<void> update(Timer timer) async {}
+  Future<void> delete(Timer timer) async {}
+
+  Future<void> start(Timer timer) async {}
+  Future<void> stop(Timer timer) async {}
+  Future<void> pause(Timer timer) async {}
+  Future<void> resume(Timer timer) async {}
+}
+
+// final timersCubit = TimersCubit()..load();
+
+// UI --------------------------------------
+
+const pagePadding = EdgeInsets.all(20);
+// const pagePadding = EdgeInsets.symmetric(vertical: 20, horizontal: 20);
 
 class HomeView extends StatelessWidget {
   HomeView({
@@ -14,7 +135,11 @@ class HomeView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Timers'),
       ),
-      body: TimerList(),
+      // body: TimerList(),
+      body: BlocProvider(
+        create: (_) => TimersCubit()..load(),
+        child: TimerList(),
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -35,13 +160,20 @@ class TimerList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cubit = context.watch<TimersCubit>();
+
+    if (cubit.state.error != null) {
+      return Text(cubit.state.error.toString());
+    }
+    if (cubit.state.timers == null) {
+      return Center(child: CircularProgressIndicator());
+    }
+
     return Column(
       // direction: Axis.vertical,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TimerListItem(),
-        TimerListItem(),
-        TimerListItem(),
+        for (final timer in cubit.state.timers!) TimerListItem(timer: timer),
       ],
     );
   }
@@ -50,49 +182,110 @@ class TimerList extends StatelessWidget {
 class TimerListItem extends StatelessWidget {
   TimerListItem({
     Key? key,
+    required this.timer,
   }) : super(key: key);
+
+  final Timer timer;
 
   @override
   Widget build(BuildContext context) {
-    // return Text('timer list item');
+    final cubit = context.watch<TimersCubit>();
+
+    if (cubit.state.error != null) {
+      return Text(cubit.state.error.toString());
+    }
+    if (cubit.state.timers == null) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    const iconSize = 45.0;
+    final dateFormat = DateFormat('HH:mm:ss');
+    // timer.countdown.inSeconds
+    final fmtCountdown = dateFormat.format(dateTime(
+      hour: timer.countdown.inSeconds ~/ (60 * 60),
+      minute: timer.countdown.inSeconds ~/ 60,
+      second: timer.countdown.inSeconds % 60,
+    ));
+
     return InkWell(
       child: Padding(
-        padding: pagePadding,
+        // padding: pagePadding,
+        padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 10),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          // mainAxisAlignment: MainAxisAlignment.center,
+          // crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Text('name'),
-            // SizedBox(height: 10),
+            // SizedBox(height: 5),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.ideographic,
+                // Row(
+                //   crossAxisAlignment: CrossAxisAlignment.baseline,
+                //   textBaseline: TextBaseline.ideographic,
+                //   children: [
+                //     Text(
+                //       '00:24:00',
+                //       style: TextStyle(fontSize: 25),
+                //     ),
+                //     // SizedBox(width: 10),
+                //     // Text(timer.name),
+                //   ],
+
+                // ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(timer.name),
+                    SizedBox(height: 5),
                     Text(
-                      '24:00',
+                      fmtCountdown,
                       style: TextStyle(fontSize: 25),
                     ),
-                    SizedBox(width: 10),
-                    Text('name'),
                   ],
                 ),
                 // Switch(value: alarm.isActive, onChanged: (_) => onToggle()),
-                ButtonBar(children: [
-                  ElevatedButton(
-                    child: Icon(Icons.play_arrow),
-                    onPressed: () {
-                      // TODO
-                    },
-                  ),
-                  ElevatedButton(
-                    child: Icon(Icons.stop),
-                    onPressed: () {
-                      // TODO
-                    },
-                  ),
-                ]),
+                ButtonBar(
+                    // alignment: MainAxisAlignment.end,
+                    children: [
+                      if (timer.status == TimerStatus.stop) ...[
+                        ElevatedButton(
+                          child: Icon(Icons.play_arrow, size: iconSize),
+                          onPressed: () {
+                            cubit.start(timer);
+                          },
+                        )
+                      ] else if (timer.status == TimerStatus.pause) ...[
+                        ElevatedButton(
+                          child: Icon(Icons.stop, size: iconSize),
+                          onPressed: () {
+                            cubit.stop(timer);
+                          },
+                        ),
+                        SizedBox(width: 10),
+                        ElevatedButton(
+                          child: Icon(Icons.play_arrow, size: iconSize),
+                          onPressed: () {
+                            cubit.start(timer);
+                          },
+                        ),
+                      ] else ...[
+                        ElevatedButton(
+                          child: Icon(Icons.stop, size: iconSize),
+                          onPressed: () {
+                            cubit.stop(timer);
+                          },
+                        ),
+                        SizedBox(width: 10),
+                        ElevatedButton(
+                          child: Icon(Icons.pause, size: iconSize),
+                          onPressed: () {
+                            cubit.pause(timer);
+                          },
+                        ),
+                      ],
+                    ]),
               ],
             ),
             SizedBox(height: 10),
