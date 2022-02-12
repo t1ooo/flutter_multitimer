@@ -110,56 +110,6 @@ class TimerListItem extends StatelessWidget {
   }
 }
 
-// class TimerInfoView extends StatelessWidget {
-//   TimerInfoView({
-//     Key? key,
-//   }) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Timer Info'),
-//       ),
-//       body: TimerEdit(),
-//     );
-//   }
-// }
-
-// class TimerInfo extends StatelessWidget {
-//   TimerInfo({
-//     Key? key,
-//   }) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Padding(
-//       padding: pagePadding,
-//       child: Column(
-//         children: [
-//           Text('name'),
-//           ButtonBar(
-//             children: [
-//               ElevatedButton(
-//                 child: Text('edit'),
-//                 onPressed: () {
-//                   // TODO
-//                 },
-//               ),
-//               ElevatedButton(
-//                 child: Text('delete'),
-//                 onPressed: () {
-//                   // TODO
-//                 },
-//               ),
-//             ],
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
 class TimerEditView extends StatelessWidget {
   TimerEditView({Key? key, this.isNew = false}) : super(key: key);
 
@@ -266,23 +216,6 @@ class TimerEdit extends StatelessWidget {
               autovalidateMode: AutovalidateMode.onUserInteraction,
             ),
             verticalPadding,
-            // ButtonBar(
-            //   alignment: MainAxisAlignment.center,
-            //   children: [
-            //     ElevatedButton(
-            //       child: Icon(Icons.play_arrow),
-            //       onPressed: () {
-            //         // TODO
-            //       },
-            //     ),
-            //     ElevatedButton(
-            //       child: Icon(Icons.stop),
-            //       onPressed: () {
-            //         // TODO
-            //       },
-            //     ),
-            //   ],
-            // ),
             verticalPadding,
             ButtonBar(
               children: [
