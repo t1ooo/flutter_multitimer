@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_pomodoro_prototype_skeleton_bloc/src/prototype.dart';
 
 import 'l10n/gen/app_localizations.dart';
 import 'sample_feature/sample_item_details_view.dart';
@@ -47,7 +48,7 @@ class MyApp extends StatelessWidget {
                     return const SampleItemDetailsView();
                   case SampleItemListView.routeName:
                   default:
-                    return const SampleItemListView();
+                    return HomeView();
                 }
               },
             );
