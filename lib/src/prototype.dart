@@ -1,13 +1,24 @@
+// TODO: enable all analysis_options.yaml
+
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:logging/logging.dart';
 
-// final timerRepo = TimerRepo();
+extension LoggerExt on Logger {
+  void error(Object? message, [Object? error, StackTrace? stackTrace]) {
+    severe(message, error, stackTrace);
+  }
+}
+
 
 class TimerRepo {
+  static final _log = Logger('TimerRepo');
+
   final Map<String, Timer> _timers = {
     'a': Timer(
       id: 'a',
@@ -45,6 +56,7 @@ class TimerRepo {
   }
 
   Future<void> update(Timer timer) async {
+    _log.info('update: $timer');
     if (!_timers.containsKey(timer.id)) {
       throw Exception('not found');
     }
@@ -90,7 +102,7 @@ enum TimerStatus {
   // resume,
 }
 
-class Timer {
+class Timer extends Equatable {
   final String id;
   final String name;
   final Duration duration;
@@ -127,6 +139,9 @@ class Timer {
       status: status ?? this.status,
     );
   }
+
+  @override
+  List<Object?> get props => [id, name, duration, countdown, status];
 }
 
 class TimersCubitState {
@@ -202,66 +217,76 @@ class TimerCubitState {
 
 class TimerCubit extends Cubit<TimerCubitState> {
   TimerCubit(
-    Timer timer, 
+    Timer timer,
     this.timerRepo, [
+    this.syncPeriod = const Duration(seconds: 5),
     this.ticker = const Ticker(),
   ]) : super(TimerCubitState(timer: timer)) {
+    if (syncPeriod < const Duration(seconds: 1)) {
+      throw Exception('syncPeriod should be >= than 1 second');
+    }
     if (timer.status == TimerStatus.start) {
       start();
     }
   }
 
+  /// delay between saving the current state of the timer to the repository
+  final Duration syncPeriod;
   final TimerRepo timerRepo;
   final Ticker ticker;
   StreamSubscription<Duration>? _tickerSub;
 
   Future<void> start() async {
-    emit(TimerCubitState(timer: state.timer.copyWith(status: TimerStatus.start)
-        /* start.timerItem,
-      TimerStatus.busy,
-      start.timerItem.duration, */
-        ));
+    final timer = state.timer.copyWith(status: TimerStatus.start);
+    emit(TimerCubitState(timer: timer));
+
     await _tickerSub?.cancel();
     _tickerSub = ticker.tick(state.timer.duration).listen(_tick);
+
+    timerRepo.update(timer);
   }
 
   Future<void> stop() async {
-    emit(
-      TimerCubitState(
-        timer: state.timer.copyWith(
-            status: TimerStatus.stop, countdown: state.timer.duration),
-      ),
+    final timer = state.timer.copyWith(
+      status: TimerStatus.stop,
+      countdown: state.timer.duration,
     );
+    emit(TimerCubitState(timer: timer));
+
     await _tickerSub?.cancel();
+
+    timerRepo.update(timer);
   }
 
   Future<void> pause() async {
-    emit(
-      TimerCubitState(
-        timer: state.timer.copyWith(status: TimerStatus.pause),
-      ),
-    );
+    final timer = state.timer.copyWith(status: TimerStatus.pause);
+    emit(TimerCubitState(timer: timer));
+
     _tickerSub?.pause();
+
+    timerRepo.update(timer);
   }
 
   Future<void> resume() async {
-    emit(
-      TimerCubitState(
-        timer: state.timer.copyWith(status: TimerStatus.start),
-      ),
-    );
+    final timer = state.timer.copyWith(status: TimerStatus.start);
+    emit(TimerCubitState(timer: timer));
+    
     _tickerSub?.resume();
+
+    timerRepo.update(timer);
   }
 
   Future<void> _tick(Duration countdown) async {
-    if (countdown.inSeconds > 0) {
-      emit(TimerCubitState(timer: state.timer.copyWith(countdown: countdown)));
-    } else {
-      // emit(TimerCubitState(
-      //     timer: state.timer
-      //         .copyWith(status: TimerStatus.stop, countdown: duration)));
-      // await _tickerSub?.cancel();
+    if (countdown.inSeconds <= 0) {
       stop();
+      return;
+    }
+
+    final timer = state.timer.copyWith(countdown: countdown);
+    emit(TimerCubitState(timer: timer));
+
+    if (countdown.inSeconds % syncPeriod.inSeconds == 0){
+      timerRepo.update(timer);
     }
   }
 }
