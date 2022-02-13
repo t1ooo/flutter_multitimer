@@ -1,7 +1,5 @@
 // TODO: enable all analysis_options.yaml
 // TODO: add l10n
-// TODO: use int id (for use in notification)
-// TODO: add notification
 
 import 'dart:async' as async;
 import 'dart:io';
