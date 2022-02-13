@@ -1,13 +1,19 @@
 // TODO: enable all analysis_options.yaml
+// TODO: add l10n
+// TODO: use int id (for use in notification)
+// TODO: add notification
 
-import 'dart:async';
+import 'dart:async' as async;
+import 'dart:io';
 
-import 'package:bloc/bloc.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
+
+// const dismissNotificationAfter = Duration(seconds: 10);
 
 extension LoggerExt on Logger {
   void error(Object? message, [Object? error, StackTrace? stackTrace]) {
@@ -15,30 +21,210 @@ extension LoggerExt on Logger {
   }
 }
 
+class Notification extends Equatable {
+  final int id;
+  final String title;
+  final String body;
+  Notification(this.id, this.title, this.body);
+
+  @override
+  List<Object?> get props => [id, title, body];
+}
+
+abstract class NotificationService {
+  Future<void> sendDelayed(Notification notification, Duration delay);
+  Future<void> cancel(int id);
+  Future<void> dismiss(int id);
+}
+
+class TimerNotificationService implements NotificationService {
+  static final _log = Logger('NotificationService');
+  final _timers = <int, async.Timer>{};
+
+  @override
+  Future<void> sendDelayed(Notification notification, Duration delay) async {
+    _log.info('register: $notification');
+    final timer = async.Timer(delay, () => _log.info('fire: $notification'));
+    _timers[notification.id] = timer;
+  }
+
+  @override
+  Future<void> cancel(int id) async {
+    _log.info('cancel: $id');
+    _timers[id]?.cancel();
+    _timers.remove(id);
+  }
+
+  @override
+  Future<void> dismiss(int id) async {
+    return;
+  }
+}
+
+class AwesomeNotificationService implements NotificationService {
+  final String key;
+  final String name;
+  final String description;
+  final bool updateChannel;
+  bool _isReady = false;
+
+  static final log = Logger('AwesomeNotificationService');
+
+  AwesomeNotificationService({
+    required this.key,
+    required this.name,
+    required this.description,
+    this.updateChannel = false,
+  });
+
+  Future<void> dispose() async {
+    AwesomeNotifications().dispose();
+  }
+
+  Future<void> _init() async {
+    if (_isReady) {
+      return;
+    }
+
+    final notificationChannel = NotificationChannel(
+      channelKey: key,
+      channelName: name,
+      channelDescription: description,
+      importance: NotificationImportance.Max,
+      defaultPrivacy: NotificationPrivacy.Public,
+      playSound: true,
+      // defaultRingtoneType: DefaultRingtoneType.Alarm,
+      defaultRingtoneType: DefaultRingtoneType.Notification,
+    );
+
+    await AwesomeNotifications().initialize(null, []);
+    if (updateChannel) {
+      await AwesomeNotifications().removeChannel(key);
+    }
+    await AwesomeNotifications().setChannel(
+      notificationChannel,
+      forceUpdate: false,
+    );
+
+    _isReady = true;
+  }
+
+  // static Future<AwesomeNotificationService> init({
+  //   required String key,
+  //   required String name,
+  //   required String description,
+  //   bool updateChannel = false,
+  // }) async {
+  //   final notificationChannel = NotificationChannel(
+  //     channelKey: key,
+  //     channelName: name,
+  //     channelDescription: description,
+  //     importance: NotificationImportance.Max,
+  //     playSound: false,
+  //     defaultPrivacy: NotificationPrivacy.Public,
+  //   );
+
+  //   await AwesomeNotifications().initialize(null, []);
+  //   if (updateChannel) {
+  //     await AwesomeNotifications().removeChannel(key);
+  //   }
+  //   await AwesomeNotifications().setChannel(
+  //     notificationChannel,
+  //     forceUpdate: false,
+  //   );
+  //   return AwesomeNotificationService._(
+  //     key: key,
+  //     name: name,
+  //     description: description,
+  //   );
+  // }
+
+  @override
+  async.Future<void> cancel(int id) async {
+    await _init();
+    await AwesomeNotifications().cancel(id);
+  }
+
+  @override
+  async.Future<void> dismiss(int id) async {
+    await _init();
+    await AwesomeNotifications().dismiss(id);
+  }
+
+  @override
+  async.Future<void> sendDelayed(
+    Notification notification,
+    Duration delay,
+  ) async {
+    await _init();
+    String localTimeZone =
+        await AwesomeNotifications().getLocalTimeZoneIdentifier();
+    // String utcTimeZone =
+    // await AwesomeNotifications().getLocalTimeZoneIdentifier();
+    await AwesomeNotifications().createNotification(
+      content: NotificationContent(
+        id: notification.id,
+        channelKey: key,
+        title: notification.title,
+        body: notification.body,
+        wakeUpScreen: true,
+        fullScreenIntent: true,
+        category: NotificationCategory.Alarm,
+      ),
+      schedule: NotificationInterval(
+        interval: delay.inSeconds,
+        timeZone: localTimeZone,
+        preciseAlarm: true,
+        repeats: false,
+        // timezone: utcTimeZone,
+      ),
+      actionButtons: [_notificationActionButton('stop', 'STOP SIGNAL')],
+    );
+  }
+
+  static NotificationActionButton _notificationActionButton(
+    String key,
+    String label,
+  ) =>
+      NotificationActionButton(
+        key: key,
+        label: label,
+        autoDismissible: true,
+        showInCompactView: true,
+        buttonType: ActionButtonType.KeepOnTop,
+      );
+}
 
 class TimerRepo {
   static final _log = Logger('TimerRepo');
 
-  final Map<String, Timer> _timers = {
-    'a': Timer(
-      id: 'a',
+  final Map<int, Timer> _timers = {
+    0: Timer(
+      id: 0,
       name: 'stop',
       duration: Duration(seconds: 60 * 60 * 2),
       countdown: Duration(seconds: 60 * 60 * 2),
       status: TimerStatus.stop,
     ),
-    'b': Timer(
-      id: 'b',
+    1: Timer(
+      id: 1,
       name: 'start',
       duration: Duration(seconds: 125),
       countdown: Duration(seconds: 125),
       status: TimerStatus.start,
     ),
-    'c': Timer(
-      id: 'c',
+    2: Timer(
+      id: 2,
       name: 'pause',
       duration: Duration(seconds: 5),
       countdown: Duration(seconds: 5),
+      status: TimerStatus.pause,
+    ),
+    3: Timer(
+      id: 3,
+      name: 'pause',
+      duration: Duration(seconds: 10),
+      countdown: Duration(seconds: 10),
       status: TimerStatus.pause,
     ),
   };
@@ -48,11 +234,14 @@ class TimerRepo {
     return _timers.values.toList();
   }
 
-  Future<void> create(Timer timer) async {
+  Future<Timer> create(Timer timer) async {
     if (_timers.containsKey(timer.id)) {
       throw Exception('already exists');
     }
-    _timers[timer.id] = timer;
+    final id = _genId();
+    final timerWithId = timer.copyWith(id: id);
+    _timers[id] = timerWithId;
+    return timerWithId;
   }
 
   Future<void> update(Timer timer) async {
@@ -69,6 +258,10 @@ class TimerRepo {
 
   Future<void> _delay() async {
     await Future.delayed(Duration(milliseconds: 500), null);
+  }
+
+  int _genId() {
+    return _timers.length;
   }
 }
 
@@ -103,7 +296,7 @@ enum TimerStatus {
 }
 
 class Timer extends Equatable {
-  final String id;
+  final int id;
   final String name;
   final Duration duration;
   final Duration countdown;
@@ -125,7 +318,7 @@ class Timer extends Equatable {
   //       status = TimerStatus.stop;
 
   Timer copyWith({
-    String? id,
+    int? id,
     String? name,
     Duration? duration,
     Duration? countdown,
@@ -218,7 +411,8 @@ class TimerCubitState {
 class TimerCubit extends Cubit<TimerCubitState> {
   TimerCubit(
     Timer timer,
-    this.timerRepo, [
+    this.timerRepo,
+    this.notificationService, [
     this.syncPeriod = const Duration(seconds: 5),
     this.ticker = const Ticker(),
   ]) : super(TimerCubitState(timer: timer)) {
@@ -230,11 +424,20 @@ class TimerCubit extends Cubit<TimerCubitState> {
     }
   }
 
+  final NotificationService notificationService;
+
   /// delay between saving the current state of the timer to the repository
   final Duration syncPeriod;
   final TimerRepo timerRepo;
   final Ticker ticker;
-  StreamSubscription<Duration>? _tickerSub;
+  async.StreamSubscription<Duration>? _tickerSub;
+  // static const notificationId = 0;
+
+   @override
+  Future<void> close() {
+    _tickerSub?.cancel();
+    return super.close();
+  }
 
   Future<void> start() async {
     final timer = state.timer.copyWith(status: TimerStatus.start);
@@ -243,10 +446,21 @@ class TimerCubit extends Cubit<TimerCubitState> {
     await _tickerSub?.cancel();
     _tickerSub = ticker.tick(state.timer.duration).listen(_tick);
 
+    notificationService.sendDelayed(
+      Notification(timer.id, timer.name, ''),
+      timer.countdown,
+    );
+
     timerRepo.update(timer);
   }
 
   Future<void> stop() async {
+    _done();
+
+    notificationService.cancel(state.timer.id);
+  }
+
+  Future<void> _done() async {
     final timer = state.timer.copyWith(
       status: TimerStatus.stop,
       countdown: state.timer.duration,
@@ -264,28 +478,35 @@ class TimerCubit extends Cubit<TimerCubitState> {
 
     _tickerSub?.pause();
 
+    notificationService.cancel(timer.id);
+
     timerRepo.update(timer);
   }
 
   Future<void> resume() async {
     final timer = state.timer.copyWith(status: TimerStatus.start);
     emit(TimerCubitState(timer: timer));
-    
+
     _tickerSub?.resume();
+
+    notificationService.sendDelayed(
+      Notification(timer.id, timer.name, ''),
+      timer.countdown,
+    );
 
     timerRepo.update(timer);
   }
 
   Future<void> _tick(Duration countdown) async {
     if (countdown.inSeconds <= 0) {
-      stop();
+      _done();
       return;
     }
 
     final timer = state.timer.copyWith(countdown: countdown);
     emit(TimerCubitState(timer: timer));
 
-    if (countdown.inSeconds % syncPeriod.inSeconds == 0){
+    if (countdown.inSeconds % syncPeriod.inSeconds == 0) {
       timerRepo.update(timer);
     }
   }
@@ -334,8 +555,20 @@ class HomeView extends StatelessWidget {
       // create: (_) => TimersCubit()..load(),
       // child: TimerList(),
       // ),
-      body: RepositoryProvider(
-        create: (_) => TimerRepo(),
+      body: MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<TimerRepo>(create: (context) => TimerRepo()),
+          RepositoryProvider<NotificationService>(
+            create: (context) => Platform.isAndroid
+                ? AwesomeNotificationService(
+                    key: 'mutlitimer key',
+                    name: 'mutlitimer name',
+                    description: 'mutlitimer desc',
+                    updateChannel: true,
+                  )
+                : TimerNotificationService(),
+          ),
+        ],
         child: BlocProvider(
           create: (context) =>
               // TimersCubit(RepositoryProvider.of<TimerRepo>(context))..load(),
@@ -378,7 +611,11 @@ class TimerList extends StatelessWidget {
       children: [
         for (final timer in cubit.state.timers!)
           BlocProvider(
-            create: (_) => TimerCubit(timer, context.read<TimerRepo>()),
+            create: (_) => TimerCubit(
+              timer,
+              context.read<TimerRepo>(),
+              context.read<NotificationService>(),
+            ),
             child: TimerListItem(),
           ),
         // BlocBuilder<TimerCubit, TimerCubitState>(
