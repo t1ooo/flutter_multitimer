@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
+        RepositoryProvider<Clock>(create: (context) => Clock()),
         RepositoryProvider<TimerRepo>(create: (context) => TimerRepo()),
         RepositoryProvider<NotificationService>(
           create: (context) => Platform.isAndroid
@@ -38,7 +40,7 @@ class MyApp extends StatelessWidget {
       child: BlocProvider(
         create: (context) =>
             // TimersCubit(RepositoryProvider.of<TimerRepo>(context))..load(),
-            TimersCubit(context.read<TimerRepo>())..load(),
+            TimersCubit(context.read<TimerRepo>(), context.read<Clock>())..load(),
         child: builder(context),
       ),
     );

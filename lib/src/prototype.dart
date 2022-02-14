@@ -5,6 +5,7 @@
 import 'dart:async' as async;
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -67,7 +68,7 @@ class AwesomeNotificationService implements NotificationService {
   final bool updateChannel;
   bool _isReady = false;
 
-  static final log = Logger('AwesomeNotificationService');
+  static final _log = Logger('AwesomeNotificationService');
 
   AwesomeNotificationService({
     required this.key,
@@ -141,12 +142,14 @@ class AwesomeNotificationService implements NotificationService {
   @override
   async.Future<void> cancel(int id) async {
     await _init();
+    _log.info('cancel: $id');
     await AwesomeNotifications().cancel(id);
   }
 
   @override
   async.Future<void> dismiss(int id) async {
     await _init();
+    _log.info('dismiss: $id');
     await AwesomeNotifications().dismiss(id);
   }
 
@@ -156,6 +159,7 @@ class AwesomeNotificationService implements NotificationService {
     Duration delay,
   ) async {
     await _init();
+    _log.info('sendDelayed: $notification, $delay');
     String localTimeZone =
         await AwesomeNotifications().getLocalTimeZoneIdentifier();
     // String utcTimeZone =
@@ -204,6 +208,7 @@ class TimerRepo {
       duration: Duration(seconds: 60 * 60 * 2),
       countdown: Duration(seconds: 60 * 60 * 2),
       status: TimerStatus.stop,
+      lastUpdate: DateTime.now(),
     ),
     1: Timer(
       id: 1,
@@ -211,6 +216,7 @@ class TimerRepo {
       duration: Duration(seconds: 125),
       countdown: Duration(seconds: 125),
       status: TimerStatus.start,
+      lastUpdate: DateTime.now(),
     ),
     2: Timer(
       id: 2,
@@ -218,6 +224,7 @@ class TimerRepo {
       duration: Duration(seconds: 5),
       countdown: Duration(seconds: 5),
       status: TimerStatus.pause,
+      lastUpdate: DateTime.now(),
     ),
     3: Timer(
       id: 3,
@@ -225,6 +232,7 @@ class TimerRepo {
       duration: Duration(seconds: 10),
       countdown: Duration(seconds: 10),
       status: TimerStatus.pause,
+      lastUpdate: DateTime.now(),
     ),
   };
 
@@ -302,6 +310,7 @@ class Timer extends Equatable {
   final Duration duration;
   final Duration countdown;
   final TimerStatus status;
+  final DateTime lastUpdate;
 
   Timer({
     required this.id,
@@ -309,6 +318,7 @@ class Timer extends Equatable {
     required this.duration,
     required this.countdown,
     required this.status,
+    required this.lastUpdate,
   });
 
   // Timer.stopped({
@@ -324,6 +334,7 @@ class Timer extends Equatable {
     Duration? duration,
     Duration? countdown,
     TimerStatus? status,
+    DateTime? lastUpdate,
   }) {
     return Timer(
       id: id ?? this.id,
@@ -331,11 +342,13 @@ class Timer extends Equatable {
       duration: duration ?? this.duration,
       countdown: countdown ?? this.countdown,
       status: status ?? this.status,
+      lastUpdate: lastUpdate ?? this.lastUpdate,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, duration, countdown, status];
+  List<Object?> get props =>
+      [id, name, duration, countdown, status, lastUpdate];
 }
 
 Timer draftTimer() {
@@ -345,6 +358,7 @@ Timer draftTimer() {
     duration: Duration(minutes: 5),
     countdown: Duration(minutes: 5),
     status: TimerStatus.stop,
+    lastUpdate: DateTime.now(),
   );
 }
 
@@ -372,10 +386,11 @@ class TimersCubitState extends Equatable {
 }
 
 class TimersCubit extends Cubit<TimersCubitState> {
-  TimersCubit(this.timerRepo) : super(TimersCubitState());
+  TimersCubit(this.timerRepo, this.clock) : super(TimersCubitState());
 
   // Future<List<Timer>>? _timers;
   final TimerRepo timerRepo;
+  final Clock clock;
   static final _log = Logger('TimersCubit');
 
   void _handleError(Exception e, [StackTrace? st]) {
@@ -420,7 +435,10 @@ class TimersCubit extends Cubit<TimersCubitState> {
 
   Future<void> create(Timer timer) async {
     try {
-      await timerRepo.create(timer);
+      await timerRepo.create(timer.copyWith(
+        lastUpdate: clock.now(),
+        status: TimerStatus.stop,
+      ));
       final timers = await timerRepo.list();
       emit(TimersCubitState(timers: timers));
     } on Exception catch (e) {
@@ -430,7 +448,10 @@ class TimersCubit extends Cubit<TimersCubitState> {
 
   Future<void> update(Timer timer) async {
     try {
-      await timerRepo.update(timer);
+      await timerRepo.update(timer.copyWith(
+        lastUpdate: clock.now(),
+        status: TimerStatus.stop,
+      ));
       final timers = await timerRepo.list();
       emit(TimersCubitState(timers: timers));
     } on Exception catch (e) {
@@ -657,7 +678,7 @@ class TimerList extends StatelessWidget {
       children: [
         for (final timer in cubit.state.timers!)
           BlocProvider(
-            key: Key(timer.id.toString()),
+            key: Key('${timer.id} ${timer.lastUpdate}'),
             create: (_) => TimerCubit(
               timer,
               context.read<TimerRepo>(),
