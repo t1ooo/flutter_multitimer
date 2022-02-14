@@ -234,9 +234,9 @@ class TimerRepo {
   }
 
   Future<Timer> create(Timer timer) async {
-    if (_timers.containsKey(timer.id)) {
-      throw Exception('already exists');
-    }
+    // if (_timers.containsKey(timer.id)) {
+    //   throw Exception('already exists');
+    // }
     final id = _genId();
     final timerWithId = timer.copyWith(id: id);
     _timers[id] = timerWithId;
@@ -247,11 +247,13 @@ class TimerRepo {
     _log.info('update: $timer');
     if (!_timers.containsKey(timer.id)) {
       throw Exception('not found');
+      // return;
     }
     _timers[timer.id] = timer;
   }
 
   Future<void> delete(Timer timer) async {
+    _log.info('delete: $timer');
     _timers.remove(timer.id);
   }
 
@@ -374,6 +376,12 @@ class TimersCubit extends Cubit<TimersCubitState> {
 
   // Future<List<Timer>>? _timers;
   final TimerRepo timerRepo;
+  static final _log = Logger('TimersCubit');
+
+  void _handleError(Exception e, [StackTrace? st]) {
+    _log.error('', e, st);
+    emit(state.copyWith(error: e)); // set error, keep the previous timers
+  }
 
   // void increment() => emit(state + 1);
   // void decrement() => emit(state - 1);
@@ -382,7 +390,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
       final timers = await timerRepo.list();
       emit(TimersCubitState(timers: timers));
     } on Exception catch (e) {
-      emit(state.copyWith(error: e));
+      _handleError(e);
     }
     // await Future.delayed(Duration(milliseconds: 500), null);
     // emit(TimersCubitState(timers: [
@@ -416,7 +424,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
       final timers = await timerRepo.list();
       emit(TimersCubitState(timers: timers));
     } on Exception catch (e) {
-      emit(state.copyWith(error: e));
+      _handleError(e);
     }
   }
 
@@ -426,7 +434,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
       final timers = await timerRepo.list();
       emit(TimersCubitState(timers: timers));
     } on Exception catch (e) {
-      emit(state.copyWith(error: e));
+      _handleError(e);
     }
   }
 
@@ -436,7 +444,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
       final timers = await timerRepo.list();
       emit(TimersCubitState(timers: timers));
     } on Exception catch (e) {
-      emit(state.copyWith(error: e));
+      _handleError(e);
     }
   }
 
@@ -461,11 +469,11 @@ class TimerCubit extends Cubit<TimerCubitState> {
     Timer timer,
     this.timerRepo,
     this.notificationService, [
-    this.syncPeriod = const Duration(seconds: 5),
+    this.saveInterval = const Duration(seconds: 5),
     this.ticker = const Ticker(),
   ]) : super(TimerCubitState(timer: timer)) {
-    if (syncPeriod < const Duration(seconds: 1)) {
-      throw Exception('syncPeriod should be >= than 1 second');
+    if (saveInterval < const Duration(seconds: 1)) {
+      throw Exception('saveInterval should be >= than 1 second');
     }
     if (timer.status == TimerStatus.start) {
       start();
@@ -475,15 +483,19 @@ class TimerCubit extends Cubit<TimerCubitState> {
   final NotificationService notificationService;
 
   /// delay between saving the current state of the timer to the repository
-  final Duration syncPeriod;
+  final Duration saveInterval;
   final TimerRepo timerRepo;
   final Ticker ticker;
   async.StreamSubscription<Duration>? _tickerSub;
+  static final _log = Logger('TimerCubit');
   // static const notificationId = 0;
 
   @override
   Future<void> close() {
+    _log.info('close: ${state.timer}');
     _tickerSub?.cancel();
+    // TODO: is it working correctly? maybe should be canceled in TimersCubit
+    notificationService.cancel(state.timer.id);
     return super.close();
   }
 
@@ -554,7 +566,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
     final timer = state.timer.copyWith(countdown: countdown);
     emit(TimerCubitState(timer: timer));
 
-    if (countdown.inSeconds % syncPeriod.inSeconds == 0) {
+    if (countdown.inSeconds % saveInterval.inSeconds == 0) {
       timerRepo.update(timer);
     }
   }
@@ -638,19 +650,20 @@ class TimerList extends StatelessWidget {
     if (cubit.state.timers == null) {
       return Center(child: CircularProgressIndicator());
     }
-
+    // print('rebuild');
     return Column(
       // direction: Axis.vertical,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final timer in cubit.state.timers!)
           BlocProvider(
+            key: Key(timer.id.toString()),
             create: (_) => TimerCubit(
               timer,
               context.read<TimerRepo>(),
               context.read<NotificationService>(),
             ),
-            child: TimerListItem(),
+            child: TimerListItem(/* key: Key(timer.id.toString()) */),
           ),
         // BlocBuilder<TimerCubit, TimerCubitState>(
         //   bloc: TimerCubit(timer),
@@ -876,7 +889,7 @@ class TimerListItem extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(timer.name),
+                    Text('${timer.name} ${timer.id}'),
                     SizedBox(height: 5),
                     Text(
                       fmtCountdown,
@@ -1157,7 +1170,7 @@ class TimerEdit extends StatelessWidget {
                 Visibility(
                   visible: !isNew,
                   child: ElevatedButton(
-                    onPressed: () async {
+                    onPressed: () {
                       cubit.delete(timer);
                       Navigator.pop(context);
                     },
@@ -1167,13 +1180,13 @@ class TimerEdit extends StatelessWidget {
                 ButtonBar(
                   children: [
                     ElevatedButton(
-                      onPressed: () async {
+                      onPressed: () {
                         Navigator.pop(context);
                       },
                       child: Text('CANCEL'),
                     ),
                     ElevatedButton(
-                      onPressed: () async {
+                      onPressed: () {
                         final name = nameController.text;
                         final duration = Duration(
                           hours: int.parse(hourController.text),
