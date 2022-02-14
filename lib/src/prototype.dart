@@ -1,6 +1,5 @@
 // TODO: enable all analysis_options.yaml
 // TODO: add l10n
-// TODO: add startTime to Timer and check countdown when restart
 
 import 'dart:async' as async;
 import 'dart:io';
@@ -249,8 +248,10 @@ class TimerRepo {
     // if (_timers.containsKey(timer.id)) {
     //   throw Exception('already exists');
     // }
+    _log.info('create: $timer');
     final id = _genId();
     final timerWithId = timer.copyWith(id: id);
+    _log.info('create: $timerWithId');
     _timers[id] = timerWithId;
     return timerWithId;
   }
@@ -273,8 +274,11 @@ class TimerRepo {
     await Future.delayed(Duration(milliseconds: 500), null);
   }
 
+  int _id = 5;
   int _genId() {
-    return _timers.length;
+    // return _timers.length;
+    _id++;
+    return _id;
   }
 }
 
@@ -443,8 +447,10 @@ class TimersCubit extends Cubit<TimersCubitState> {
   }
 
   Future<void> create(Timer timer) async {
+    _log.info('create');
     try {
       await timerRepo.create(timer.copyWith(
+        countdown: timer.duration,
         lastUpdate: clock.now(),
         status: TimerStatus.stop,
       ));
@@ -456,11 +462,27 @@ class TimersCubit extends Cubit<TimersCubitState> {
   }
 
   Future<void> update(Timer timer) async {
+    _log.info('update');
+
     try {
+      // for automatically update TimerCubit (and cancel previous notification) we could
+      //    1. update timer inself and use composite key (for example Timer.id + Timer.lastUpdateDateTime) in BlocProvider
+      //      cons: we need extra field (lastUpdateDateTime) in Timer
+      //    2. recreate timer with new id and use Timer.id as key in BlocProvider
+      //      cons: we need to sort timers because recreated timer will move to the end of the list
+
       await timerRepo.update(timer.copyWith(
+        countdown: timer.duration,
         lastUpdate: clock.now(),
         status: TimerStatus.stop,
       ));
+
+      // await timerRepo.delete(timer);
+      // await timerRepo.create(timer.copyWith(
+      //   countdown: timer.duration,
+      //   lastUpdate: clock.now(),
+      //   status: TimerStatus.stop,
+      // ));
       final timers = await timerRepo.list();
       emit(TimersCubitState(timers: timers));
     } on Exception catch (e) {
@@ -500,7 +522,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
     this.timerRepo,
     this.clock,
     this.notificationService, [
-    this.saveInterval = const Duration(seconds: 5),
+    this.saveInterval = const Duration(seconds: 10),
     this.ticker = const Ticker(),
   ]) : super(TimerCubitState(timer: timer)) {
     if (saveInterval < const Duration(seconds: 1)) {
@@ -525,7 +547,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
       final stopAt = state.timer.startedAt.add(state.timer.countdown);
       final countdown = stopAt.difference(clock.now()) + Duration(seconds: 1);
       if (countdown <= Duration.zero) {
-        _log.info('done when the app was not running');
+        _log.info('timer ended when the app was not running: ${state.timer}');
         _done();
       } else {
         _restart(countdown);
@@ -735,8 +757,11 @@ class TimerList extends StatelessWidget {
       children: [
         for (final timer in cubit.state.timers!)
           BlocProvider(
+            // we need key in BlocProvider to update TimerCubit when timer is updated
             // TODO: remove lastUpdate from Timer, replace key to {timer.id timer.status}
             key: Key('${timer.id} ${timer.lastUpdate}'),
+            // key: Key('${timer.id} ${timer.status}'),
+            // key: Key('${timer.id}'),
             create: (_) => TimerCubit(
               timer,
               context.read<TimerRepo>(),
