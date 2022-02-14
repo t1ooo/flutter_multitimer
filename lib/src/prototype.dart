@@ -1,5 +1,6 @@
 // TODO: enable all analysis_options.yaml
 // TODO: add l10n
+// TODO: add startTime to Timer and check countdown when restart
 
 import 'dart:async' as async;
 import 'dart:io';
@@ -335,7 +336,17 @@ class Timer extends Equatable {
   List<Object?> get props => [id, name, duration, countdown, status];
 }
 
-class TimersCubitState {
+Timer draftTimer() {
+  return Timer(
+    id: 0,
+    name: 'timer',
+    duration: Duration(minutes: 5),
+    countdown: Duration(minutes: 5),
+    status: TimerStatus.stop,
+  );
+}
+
+class TimersCubitState extends Equatable {
   final List<Timer>? timers;
   final Object? error;
 
@@ -343,6 +354,19 @@ class TimersCubitState {
     this.timers,
     this.error,
   });
+
+  @override
+  List<Object?> get props => [timers, error];
+
+  TimersCubitState copyWith({
+    List<Timer>? timers,
+    Object? error,
+  }) {
+    return TimersCubitState(
+      timers: timers ?? this.timers,
+      error: error ?? this.error,
+    );
+  }
 }
 
 class TimersCubit extends Cubit<TimersCubitState> {
@@ -358,7 +382,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
       final timers = await timerRepo.list();
       emit(TimersCubitState(timers: timers));
     } on Exception catch (e) {
-      emit(TimersCubitState(error: e));
+      emit(state.copyWith(error: e));
     }
     // await Future.delayed(Duration(milliseconds: 500), null);
     // emit(TimersCubitState(timers: [
@@ -386,9 +410,35 @@ class TimersCubit extends Cubit<TimersCubitState> {
     // ]));
   }
 
-  Future<void> create(Timer timer) async {}
-  Future<void> update(Timer timer) async {}
-  Future<void> delete(Timer timer) async {}
+  Future<void> create(Timer timer) async {
+    try {
+      await timerRepo.create(timer);
+      final timers = await timerRepo.list();
+      emit(TimersCubitState(timers: timers));
+    } on Exception catch (e) {
+      emit(state.copyWith(error: e));
+    }
+  }
+
+  Future<void> update(Timer timer) async {
+    try {
+      await timerRepo.update(timer);
+      final timers = await timerRepo.list();
+      emit(TimersCubitState(timers: timers));
+    } on Exception catch (e) {
+      emit(state.copyWith(error: e));
+    }
+  }
+
+  Future<void> delete(Timer timer) async {
+    try {
+      await timerRepo.delete(timer);
+      final timers = await timerRepo.list();
+      emit(TimersCubitState(timers: timers));
+    } on Exception catch (e) {
+      emit(state.copyWith(error: e));
+    }
+  }
 
   // Future<void> start(Timer timer) async {}
   // Future<void> stop(Timer timer) async {}
@@ -431,7 +481,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
   async.StreamSubscription<Duration>? _tickerSub;
   // static const notificationId = 0;
 
-   @override
+  @override
   Future<void> close() {
     _tickerSub?.cancel();
     return super.close();
@@ -529,12 +579,16 @@ final dateFormat = DateFormat('HH:mm:ss');
 const pagePadding = EdgeInsets.all(20);
 // const pagePadding = EdgeInsets.symmetric(vertical: 20, horizontal: 20);
 
+DateTime dateTimeFromDuration(Duration duration) {
+  return dateTime(
+    hour: duration.inSeconds ~/ (60 * 60 * 24),
+    minute: duration.inSeconds ~/ 60,
+    second: duration.inSeconds % 60,
+  );
+}
+
 String formatCountdown(Duration countdown) {
-  return dateFormat.format(dateTime(
-    hour: countdown.inSeconds ~/ (60 * 60),
-    minute: countdown.inSeconds ~/ 60,
-    second: countdown.inSeconds % 60,
-  ));
+  return dateFormat.format(dateTimeFromDuration(countdown));
 }
 
 class HomeView extends StatelessWidget {
@@ -553,32 +607,14 @@ class HomeView extends StatelessWidget {
       // create: (_) => TimersCubit()..load(),
       // child: TimerList(),
       // ),
-      body: MultiRepositoryProvider(
-        providers: [
-          RepositoryProvider<TimerRepo>(create: (context) => TimerRepo()),
-          RepositoryProvider<NotificationService>(
-            create: (context) => Platform.isAndroid
-                ? AwesomeNotificationService(
-                    key: 'mutlitimer key',
-                    name: 'mutlitimer name',
-                    description: 'mutlitimer desc',
-                    updateChannel: true,
-                  )
-                : TimerNotificationService(),
-          ),
-        ],
-        child: BlocProvider(
-          create: (context) =>
-              // TimersCubit(RepositoryProvider.of<TimerRepo>(context))..load(),
-              TimersCubit(context.read<TimerRepo>())..load(),
-          child: TimerList(),
-        ),
-      ),
+      body: TimerList(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => TimerEditView(isNew: true)),
+            MaterialPageRoute(
+                builder: (_) =>
+                    TimerEditView(timer: draftTimer(), isNew: true)),
           );
         },
         child: Icon(Icons.add),
@@ -899,7 +935,7 @@ class TimerListItem extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => TimerEditView()),
+          MaterialPageRoute(builder: (_) => TimerEditView(timer: timer)),
         );
       },
     );
@@ -907,9 +943,11 @@ class TimerListItem extends StatelessWidget {
 }
 
 class TimerEditView extends StatelessWidget {
-  TimerEditView({Key? key, this.isNew = false}) : super(key: key);
+  TimerEditView({Key? key, required this.timer, this.isNew = false})
+      : super(key: key);
 
-  bool isNew;
+  final bool isNew;
+  final Timer timer;
 
   @override
   Widget build(BuildContext context) {
@@ -917,19 +955,39 @@ class TimerEditView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Edit Timer'),
       ),
-      body: TimerEdit(isNew: isNew),
+      body: TimerEdit(timer: timer, isNew: isNew),
     );
   }
 }
 
 class TimerEdit extends StatelessWidget {
-  TimerEdit({Key? key, this.isNew = false}) : super(key: key);
+  TimerEdit({Key? key, required this.timer, this.isNew = false})
+      : super(key: key);
 
-  bool isNew;
+  static final hourController = TextEditingController();
+  static final minuteController = TextEditingController();
+  static final secondController = TextEditingController();
+  static final nameController = TextEditingController();
+
+  final bool isNew;
+  final Timer timer;
+
+  String _format(int n) {
+    return n.toString().padLeft(2, '0');
+  }
 
   @override
   Widget build(BuildContext context) {
     final verticalPadding = SizedBox(height: 30);
+
+    final cubit = context.read<TimersCubit>();
+
+    final durationDateTime = dateTimeFromDuration(timer.duration);
+    hourController.text = _format(durationDateTime.hour);
+    minuteController.text = _format(durationDateTime.minute);
+    secondController.text = _format(durationDateTime.second);
+
+    nameController.text = timer.name;
 
     return Padding(
       padding: pagePadding,
@@ -944,14 +1002,44 @@ class TimerEdit extends StatelessWidget {
                       labelText: 'h',
                       border: OutlineInputBorder(),
                     ),
-                    initialValue: '01',
-                    onSaved: (name) {
-                      // TODO
+                    // initialValue: '01',
+                    controller: hourController,
+                    // onSaved: (name) {
+                    //   // TODO
+                    // },
+                    // onChanged: (String value) {
+
+                    // },
+                    onFieldSubmitted: (String value) {
+                      final controller = hourController;
+                      if (value == '') {
+                        controller.text = '00';
+                        return;
+                      }
+                      final num = int.tryParse(value);
+                      if (num == null || num < 0) {
+                        controller.text = '00';
+                        return;
+                      }
                     },
-                    validator: (name) {
-                      // TODO
-                    },
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // validator: (String? value) {
+                    //   if (value == null || value == '') {
+                    //     // return 'fill hours';
+                    //     return '';
+                    //   }
+                    //   final num = int.tryParse(value);
+                    //   if (num == null) {
+                    //     // return 'fill valid number';
+                    //     return '';
+                    //   }
+                    //   if (num < 0) {
+                    //     // return 'fill number greater then 0';
+                    //     return '';
+                    //   }
+                    //   print(num);
+                    //   return null;
+                    // },
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.next,
                   ),
@@ -963,14 +1051,45 @@ class TimerEdit extends StatelessWidget {
                       labelText: 'm',
                       border: OutlineInputBorder(),
                     ),
-                    initialValue: '02',
-                    onSaved: (name) {
-                      // TODO
+                    // initialValue: '02',
+                    // onSaved: (name) {
+                    // TODO
+                    // },
+                    controller: minuteController,
+                    onFieldSubmitted: (String value) {
+                      final controller = minuteController;
+                      if (value == '') {
+                        controller.text = '00';
+                        return;
+                      }
+                      final num = int.tryParse(value);
+                      if (num == null || num < 0) {
+                        controller.text = '00';
+                        return;
+                      }
+                      if (59 < num) {
+                        controller.text = '59';
+                        return;
+                      }
                     },
-                    validator: (name) {
-                      // TODO
-                    },
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // validator: (value) {
+                    //   if (value == null || value == '') {
+                    //     // return 'fill hours';
+                    //     return '';
+                    //   }
+                    //   final num = int.tryParse(value);
+                    //   if (num == null) {
+                    //     // return 'fill valid number';
+                    //     return '';
+                    //   }
+                    //   if (num < 0 || 59 < num) {
+                    //     // return 'fill number greater then 0';
+                    //     return '';
+                    //   }
+                    //   print(num);
+                    //   return null;
+                    // },
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.next,
                   ),
@@ -982,16 +1101,33 @@ class TimerEdit extends StatelessWidget {
                       labelText: 's',
                       border: OutlineInputBorder(),
                     ),
-                    initialValue: '03',
-                    onSaved: (name) {
-                      // TODO
+                    controller: secondController,
+                    onFieldSubmitted: (String value) {
+                      final controller = secondController;
+                      if (value == '') {
+                        controller.text = '00';
+                        return;
+                      }
+                      final num = int.tryParse(value);
+                      if (num == null || num < 0) {
+                        controller.text = '00';
+                        return;
+                      }
+                      if (59 < num) {
+                        controller.text = '59';
+                        return;
+                      }
                     },
-                    validator: (name) {
-                      // TODO
-                    },
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    // initialValue: '03',
+                    // onSaved: (name) {
+                    //   // TODO
+                    // },
+                    // validator: (name) {
+                    //   // TODO
+                    // },
+                    // autovalidateMode: AutovalidateMode.onUserInteraction,
                     keyboardType: TextInputType.number,
-                    textInputAction: TextInputAction.done,
+                    textInputAction: TextInputAction.next,
                   ),
                 ),
               ],
@@ -1002,35 +1138,98 @@ class TimerEdit extends StatelessWidget {
                 labelText: 'name',
                 border: OutlineInputBorder(),
               ),
-              initialValue: 'timer',
-              onSaved: (name) {
-                // TODO
+              // initialValue: 'timer',
+              controller: nameController,
+              onFieldSubmitted: (String value) {
+                final controller = nameController;
+                if (value == '') {
+                  controller.text = timer.name;
+                  return;
+                }
               },
-              validator: (name) {
-                // TODO
-              },
-              autovalidateMode: AutovalidateMode.onUserInteraction,
+              // autovalidateMode: AutovalidateMode.onUserInteraction,
+              textInputAction: TextInputAction.done,
             ),
-            verticalPadding,
             verticalPadding,
             ButtonBar(
+              alignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (isNew)
-                  ElevatedButton(
-                    child: Text('create'),
-                    onPressed: () {
-                      // TODO
+                Visibility(
+                  visible: !isNew,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      cubit.delete(timer);
+                      Navigator.pop(context);
                     },
-                  )
-                else
-                  ElevatedButton(
-                    child: Text('delete'),
-                    onPressed: () {
-                      // TODO
-                    },
-                  )
+                    child: Text('DELETE'),
+                  ),
+                ),
+                ButtonBar(
+                  children: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                      },
+                      child: Text('CANCEL'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        final name = nameController.text;
+                        final duration = Duration(
+                          hours: int.parse(hourController.text),
+                          minutes: int.parse(minuteController.text),
+                          seconds: int.parse(secondController.text),
+                        );
+                        final newTimer =
+                            timer.copyWith(duration: duration, name: name);
+                        isNew ? cubit.create(newTimer) : cubit.update(newTimer);
+                        Navigator.pop(context);
+                      },
+                      child: Text('SAVE'),
+                    ),
+                  ],
+                ),
               ],
             ),
+            // ButtonBar(
+            //   children: [
+            //     // ElevatedButton(
+            //     //   child: Text('start'),
+            //     //   onPressed: () {
+            //     //     // TODO
+            //     //   },
+            //     // ),
+            //     if (isNew) ...[
+            //       ElevatedButton(
+            //         child: Text('cancel'),
+            //         onPressed: () {
+            //           // TODO
+            //         },
+            //       ),
+            //       ElevatedButton(
+            //         child: Text('create'),
+            //         onPressed: () {
+            //           // TODO
+            //         },
+            //       ),
+            //     ] else
+            //       ElevatedButton(
+            //         child: Text('update'),
+            //         onPressed: () {
+            //           // TODO
+            //         },
+            //       )
+            //   ],
+            // ),
+            // if (!isNew) ...[
+            //   Divider(),
+            //   ElevatedButton(
+            //     child: Text('delete'),
+            //     onPressed: () {
+            //       // TODO
+            //     },
+            //   ),
+            // ]
           ],
         ),
       ),
