@@ -5,8 +5,8 @@
 import 'dart:async' as async;
 import 'dart:io';
 
-import 'package:clock/clock.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:clock/clock.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -209,14 +209,16 @@ class TimerRepo {
       countdown: Duration(seconds: 60 * 60 * 2),
       status: TimerStatus.stop,
       lastUpdate: DateTime.now(),
+      startedAt: DateTime.now(),
     ),
     1: Timer(
       id: 1,
-      name: 'start',
+      name: 'stop',
       duration: Duration(seconds: 125),
       countdown: Duration(seconds: 125),
-      status: TimerStatus.start,
+      status: TimerStatus.stop,
       lastUpdate: DateTime.now(),
+      startedAt: DateTime.now(),
     ),
     2: Timer(
       id: 2,
@@ -225,14 +227,16 @@ class TimerRepo {
       countdown: Duration(seconds: 5),
       status: TimerStatus.pause,
       lastUpdate: DateTime.now(),
+      startedAt: DateTime.now(),
     ),
     3: Timer(
       id: 3,
-      name: 'pause',
+      name: 'start',
       duration: Duration(seconds: 10),
       countdown: Duration(seconds: 10),
-      status: TimerStatus.pause,
+      status: TimerStatus.start,
       lastUpdate: DateTime.now(),
+      startedAt: DateTime.now(),
     ),
   };
 
@@ -311,6 +315,7 @@ class Timer extends Equatable {
   final Duration countdown;
   final TimerStatus status;
   final DateTime lastUpdate;
+  final DateTime startedAt;
 
   Timer({
     required this.id,
@@ -319,6 +324,7 @@ class Timer extends Equatable {
     required this.countdown,
     required this.status,
     required this.lastUpdate,
+    required this.startedAt,
   });
 
   // Timer.stopped({
@@ -335,6 +341,7 @@ class Timer extends Equatable {
     Duration? countdown,
     TimerStatus? status,
     DateTime? lastUpdate,
+    DateTime? startedAt,
   }) {
     return Timer(
       id: id ?? this.id,
@@ -343,12 +350,13 @@ class Timer extends Equatable {
       countdown: countdown ?? this.countdown,
       status: status ?? this.status,
       lastUpdate: lastUpdate ?? this.lastUpdate,
+      startedAt: startedAt ?? this.startedAt,
     );
   }
 
   @override
   List<Object?> get props =>
-      [id, name, duration, countdown, status, lastUpdate];
+      [id, name, duration, countdown, status, lastUpdate, startedAt];
 }
 
 Timer draftTimer() {
@@ -359,6 +367,7 @@ Timer draftTimer() {
     countdown: Duration(minutes: 5),
     status: TimerStatus.stop,
     lastUpdate: DateTime.now(),
+    startedAt: DateTime.now(),
   );
 }
 
@@ -489,6 +498,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
   TimerCubit(
     Timer timer,
     this.timerRepo,
+    this.clock,
     this.notificationService, [
     this.saveInterval = const Duration(seconds: 5),
     this.ticker = const Ticker(),
@@ -496,9 +506,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
     if (saveInterval < const Duration(seconds: 1)) {
       throw Exception('saveInterval should be >= than 1 second');
     }
-    if (timer.status == TimerStatus.start) {
-      start();
-    }
+    _init();
   }
 
   final NotificationService notificationService;
@@ -506,10 +514,32 @@ class TimerCubit extends Cubit<TimerCubitState> {
   /// delay between saving the current state of the timer to the repository
   final Duration saveInterval;
   final TimerRepo timerRepo;
+  final Clock clock;
   final Ticker ticker;
   async.StreamSubscription<Duration>? _tickerSub;
   static final _log = Logger('TimerCubit');
   // static const notificationId = 0;
+
+  void _init() {
+    if (state.timer.status == TimerStatus.start) {
+      final stopAt = state.timer.startedAt.add(state.timer.countdown);
+      final countdown = stopAt.difference(clock.now()) + Duration(seconds: 1);
+      if (countdown <= Duration.zero) {
+        _log.info('done when the app was not running');
+        _done();
+      } else {
+        _restart(countdown);
+      }
+      // if (clock
+      //     .now()
+      //     .isAfter(state.timer.startedAt.add(state.timer.countdown))) {
+      //   _log.info('done when the app was not running');
+      //   _done();
+      // } else {
+      //   start();
+      // }
+    }
+  }
 
   @override
   Future<void> close() {
@@ -521,12 +551,37 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   Future<void> start() async {
-    final timer = state.timer.copyWith(status: TimerStatus.start);
+    final timer = state.timer.copyWith(
+      status: TimerStatus.start,
+      startedAt: clock.now(),
+    );
     emit(TimerCubitState(timer: timer));
 
     await _tickerSub?.cancel();
     _tickerSub = ticker.tick(state.timer.duration).listen(_tick);
 
+    notificationService.cancel(state.timer.id);
+    notificationService.sendDelayed(
+      Notification(timer.id, timer.name, ''),
+      timer.countdown,
+    );
+
+    timerRepo.update(timer);
+  }
+
+  /// restart timer after app restart
+  Future<void> _restart(Duration countdown) async {
+    final timer = state.timer.copyWith(
+      // status: TimerStatus.start,
+      startedAt: clock.now(),
+      countdown: countdown,
+    );
+    emit(TimerCubitState(timer: timer));
+
+    await _tickerSub?.cancel();
+    _tickerSub = ticker.tick(state.timer.duration).listen(_tick);
+
+    notificationService.cancel(state.timer.id);
     notificationService.sendDelayed(
       Notification(timer.id, timer.name, ''),
       timer.countdown,
@@ -565,11 +620,13 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   Future<void> resume() async {
-    final timer = state.timer.copyWith(status: TimerStatus.start);
+    final timer =
+        state.timer.copyWith(status: TimerStatus.start, startedAt: clock.now());
     emit(TimerCubitState(timer: timer));
 
     _tickerSub?.resume();
 
+    notificationService.cancel(state.timer.id);
     notificationService.sendDelayed(
       Notification(timer.id, timer.name, ''),
       timer.countdown,
@@ -678,10 +735,12 @@ class TimerList extends StatelessWidget {
       children: [
         for (final timer in cubit.state.timers!)
           BlocProvider(
+            // TODO: remove lastUpdate from Timer, replace key to {timer.id timer.status}
             key: Key('${timer.id} ${timer.lastUpdate}'),
             create: (_) => TimerCubit(
               timer,
               context.read<TimerRepo>(),
+              context.read<Clock>(),
               context.read<NotificationService>(),
             ),
             child: TimerListItem(/* key: Key(timer.id.toString()) */),
