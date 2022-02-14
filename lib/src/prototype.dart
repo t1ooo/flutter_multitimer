@@ -751,9 +751,9 @@ class TimerList extends StatelessWidget {
       return Center(child: CircularProgressIndicator());
     }
     // print('rebuild');
-    return Column(
+    return ListView(
       // direction: Axis.vertical,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+      // crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final timer in cubit.state.timers!)
           BlocProvider(
