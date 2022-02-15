@@ -80,7 +80,7 @@ class AwesomeNotificationService implements NotificationService {
     AwesomeNotifications().dispose();
   }
 
-  Future<void> _init() async {
+  Future<void> init() async {
     if (_isReady) {
       return;
     }
@@ -140,14 +140,14 @@ class AwesomeNotificationService implements NotificationService {
 
   @override
   async.Future<void> cancel(int id) async {
-    await _init();
+    // await _init();
     _log.info('cancel: $id');
     await AwesomeNotifications().cancel(id);
   }
 
   @override
   async.Future<void> dismiss(int id) async {
-    await _init();
+    // await _init();
     _log.info('dismiss: $id');
     await AwesomeNotifications().dismiss(id);
   }
@@ -157,7 +157,7 @@ class AwesomeNotificationService implements NotificationService {
     Notification notification,
     Duration delay,
   ) async {
-    await _init();
+    // await _init();
     _log.info('sendDelayed: $notification, $delay');
     String localTimeZone =
         await AwesomeNotifications().getLocalTimeZoneIdentifier();
@@ -197,47 +197,16 @@ class AwesomeNotificationService implements NotificationService {
       );
 }
 
-class TimerRepo {
-  static final _log = Logger('TimerRepo');
+abstract class TimerRepo {
+  Future<List<Timer>> list();
+  Future<Timer> create(Timer timer);
+  Future<void> update(Timer timer);
+  Future<void> delete(Timer timer);
+}
 
-  final Map<int, Timer> _timers = {
-    0: Timer(
-      id: 0,
-      name: 'stop',
-      duration: Duration(seconds: 60 * 60 * 2),
-      countdown: Duration(seconds: 60 * 60 * 2),
-      status: TimerStatus.stop,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
-    ),
-    1: Timer(
-      id: 1,
-      name: 'stop',
-      duration: Duration(seconds: 125),
-      countdown: Duration(seconds: 125),
-      status: TimerStatus.stop,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
-    ),
-    2: Timer(
-      id: 2,
-      name: 'pause',
-      duration: Duration(seconds: 5),
-      countdown: Duration(seconds: 5),
-      status: TimerStatus.pause,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
-    ),
-    3: Timer(
-      id: 3,
-      name: 'start',
-      duration: Duration(seconds: 10),
-      countdown: Duration(seconds: 10),
-      status: TimerStatus.start,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
-    ),
-  };
+class InMemoryTimerRepo implements TimerRepo {
+  static final _log = Logger('TimerRepo');
+  final _timers = <int, Timer>{};
 
   Future<List<Timer>> list() async {
     await _delay();
@@ -274,9 +243,8 @@ class TimerRepo {
     await Future.delayed(Duration(milliseconds: 500), null);
   }
 
-  int _id = 5;
+  int _id = 0;
   int _genId() {
-    // return _timers.length;
     _id++;
     return _id;
   }

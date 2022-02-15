@@ -22,27 +22,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiRepositoryProvider(
-      providers: [
-        RepositoryProvider<Clock>(create: (context) => Clock()),
-        RepositoryProvider<TimerRepo>(create: (context) => TimerRepo()),
-        RepositoryProvider<NotificationService>(
-          create: (context) => Platform.isAndroid
-              ? AwesomeNotificationService(
-                  key: 'mutlitimer key',
-                  name: 'mutlitimer name',
-                  description: 'mutlitimer desc',
-                  updateChannel: true,
-                )
-              : TimerNotificationService(),
-        ),
-      ],
-      child: BlocProvider(
-        create: (context) =>
-            // TimersCubit(RepositoryProvider.of<TimerRepo>(context))..load(),
-            TimersCubit(context.read<TimerRepo>(), context.read<Clock>())..load(),
-        child: builder(context),
-      ),
+    return BlocProvider(
+      create: (context) =>
+          // TimersCubit(RepositoryProvider.of<TimerRepo>(context))..load(),
+          TimersCubit(context.read<TimerRepo>(), context.read<Clock>())..load(),
+      child: builder(context),
     );
   }
 
