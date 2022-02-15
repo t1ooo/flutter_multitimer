@@ -64,49 +64,49 @@ Future<NotificationService> notificationService() async {
 
 Future<TimerRepo> timerRepo() async {
   final timerRepo = InMemoryTimerRepo();
-  for (final timer in initialTimers()) {
-    await timerRepo.create(timer);
-  }
+  // for (final timer in initialTimers()) {
+  //   await timerRepo.create(timer);
+  // }
   return timerRepo;
 }
 
-List<Timer> initialTimers() {
-  return [
-    Timer(
-      id: 0,
-      name: 'stop',
-      duration: Duration(seconds: 60 * 60 * 2),
-      countdown: Duration(seconds: 60 * 60 * 2),
-      status: TimerStatus.stop,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
-    ),
-    Timer(
-      id: 1,
-      name: 'stop',
-      duration: Duration(seconds: 125),
-      countdown: Duration(seconds: 125),
-      status: TimerStatus.stop,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
-    ),
-    Timer(
-      id: 2,
-      name: 'pause',
-      duration: Duration(seconds: 5),
-      countdown: Duration(seconds: 5),
-      status: TimerStatus.pause,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
-    ),
-    Timer(
-      id: 3,
-      name: 'start',
-      duration: Duration(seconds: 10),
-      countdown: Duration(seconds: 10),
-      status: TimerStatus.start,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
-    ),
-  ];
-}
+// List<Timer> initialTimers() {
+//   return [
+//     Timer(
+//       id: 0,
+//       name: 'stop',
+//       duration: Duration(seconds: 60 * 60 * 2),
+//       countdown: Duration(seconds: 60 * 60 * 2),
+//       status: TimerStatus.stop,
+//       lastUpdate: DateTime.now(),
+//       startedAt: DateTime.now(),
+//     ),
+//     Timer(
+//       id: 1,
+//       name: 'stop',
+//       duration: Duration(seconds: 125),
+//       countdown: Duration(seconds: 125),
+//       status: TimerStatus.stop,
+//       lastUpdate: DateTime.now(),
+//       startedAt: DateTime.now(),
+//     ),
+//     Timer(
+//       id: 2,
+//       name: 'pause',
+//       duration: Duration(seconds: 5),
+//       countdown: Duration(seconds: 5),
+//       status: TimerStatus.pause,
+//       lastUpdate: DateTime.now(),
+//       startedAt: DateTime.now(),
+//     ),
+//     Timer(
+//       id: 3,
+//       name: 'start',
+//       duration: Duration(seconds: 10),
+//       countdown: Duration(seconds: 10),
+//       status: TimerStatus.start,
+//       lastUpdate: DateTime.now(),
+//       startedAt: DateTime.now(),
+//     ),
+//   ];
+// }

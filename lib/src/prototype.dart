@@ -12,6 +12,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
 
+import 'l10n/gen/app_localizations.dart';
+
 // const dismissNotificationAfter = Duration(seconds: 10);
 
 extension LoggerExt on Logger {
@@ -58,6 +60,10 @@ class TimerNotificationService implements NotificationService {
   Future<void> dismiss(int id) async {
     return;
   }
+}
+
+class NotificationLocalizations {
+  String get stopSignalButton => 'STOP SIGNAL';
 }
 
 class AwesomeNotificationService implements NotificationService {
@@ -366,6 +372,18 @@ class TimersCubitState extends Equatable {
   }
 }
 
+class TimerLocalizations {
+  TimerLocalizations(this.l10n);
+
+  factory TimerLocalizations.of(BuildContext context) {
+    return TimerLocalizations(AppLocalizations.of(context)!);
+  }
+
+  final AppLocalizations l10n;
+
+  String get defaultName => 'timer';
+}
+
 class TimersCubit extends Cubit<TimersCubitState> {
   TimersCubit(this.timerRepo, this.clock) : super(TimersCubitState());
 
@@ -381,9 +399,13 @@ class TimersCubit extends Cubit<TimersCubitState> {
 
   // void increment() => emit(state + 1);
   // void decrement() => emit(state - 1);
-  Future<void> load() async {
+  Future<void> init(TimerLocalizations l10n) async {
     try {
-      final timers = await timerRepo.list();
+      var timers = await timerRepo.list();
+      if (timers.isEmpty) {
+        await _populate(l10n);
+        timers = await timerRepo.list();
+      }
       emit(TimersCubitState(timers: timers));
     } on Exception catch (e) {
       _handleError(e);
@@ -412,6 +434,12 @@ class TimersCubit extends Cubit<TimersCubitState> {
     //     status: TimerStatus.pause,
     //   ),
     // ]));
+  }
+
+  Future<void> _populate(TimerLocalizations l10n) async {
+    for (final timer in initialTimers(l10n)) {
+      await timerRepo.create(timer);
+    }
   }
 
   Future<void> create(Timer timer) async {
@@ -472,6 +500,47 @@ class TimersCubit extends Cubit<TimersCubitState> {
   // Future<void> stop(Timer timer) async {}
   // Future<void> pause(Timer timer) async {}
   // Future<void> resume(Timer timer) async {}
+}
+
+List<Timer> initialTimers(TimerLocalizations l10n) {
+  return [
+    Timer(
+      id: 0,
+      name: 'stop',
+      duration: Duration(seconds: 60 * 60 * 2),
+      countdown: Duration(seconds: 60 * 60 * 2),
+      status: TimerStatus.stop,
+      lastUpdate: DateTime.now(),
+      startedAt: DateTime.now(),
+    ),
+    Timer(
+      id: 1,
+      name: 'stop',
+      duration: Duration(seconds: 125),
+      countdown: Duration(seconds: 125),
+      status: TimerStatus.stop,
+      lastUpdate: DateTime.now(),
+      startedAt: DateTime.now(),
+    ),
+    Timer(
+      id: 2,
+      name: 'pause',
+      duration: Duration(seconds: 5),
+      countdown: Duration(seconds: 5),
+      status: TimerStatus.pause,
+      lastUpdate: DateTime.now(),
+      startedAt: DateTime.now(),
+    ),
+    Timer(
+      id: 3,
+      name: 'start',
+      duration: Duration(seconds: 10),
+      countdown: Duration(seconds: 10),
+      status: TimerStatus.start,
+      lastUpdate: DateTime.now(),
+      startedAt: DateTime.now(),
+    ),
+  ];
 }
 
 class TimerCubitState {

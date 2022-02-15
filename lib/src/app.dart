@@ -25,7 +25,8 @@ class MyApp extends StatelessWidget {
     return BlocProvider(
       create: (context) =>
           // TimersCubit(RepositoryProvider.of<TimerRepo>(context))..load(),
-          TimersCubit(context.read<TimerRepo>(), context.read<Clock>())..load(),
+          TimersCubit(context.read<TimerRepo>(), context.read<Clock>())
+            ..init(TimerLocalizations.of(context)),
       child: builder(context),
     );
   }
