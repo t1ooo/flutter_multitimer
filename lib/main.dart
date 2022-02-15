@@ -54,6 +54,7 @@ Future<NotificationService> notificationService() async {
       key: 'mutlitimer key',
       name: 'mutlitimer name',
       description: 'mutlitimer desc',
+      l10n: NotificationLocalizations(),
       updateChannel: true,
     );
     await ns.init();

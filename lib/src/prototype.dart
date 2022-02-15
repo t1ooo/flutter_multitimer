@@ -36,6 +36,7 @@ abstract class NotificationService {
   Future<void> sendDelayed(Notification notification, Duration delay);
   Future<void> cancel(int id);
   Future<void> dismiss(int id);
+  void setLocalizations(NotificationLocalizations l10n);
 }
 
 class TimerNotificationService implements NotificationService {
@@ -60,9 +61,22 @@ class TimerNotificationService implements NotificationService {
   Future<void> dismiss(int id) async {
     return;
   }
+
+  @override
+  void setLocalizations(NotificationLocalizations l10n) {
+    return;
+  }
 }
 
 class NotificationLocalizations {
+  NotificationLocalizations([this.l10n]);
+
+  factory NotificationLocalizations.of(BuildContext context) {
+    return NotificationLocalizations(AppLocalizations.of(context));
+  }
+
+  final AppLocalizations? l10n;
+
   String get stopSignalButton => 'STOP SIGNAL';
 }
 
@@ -71,6 +85,7 @@ class AwesomeNotificationService implements NotificationService {
   final String name;
   final String description;
   final bool updateChannel;
+  NotificationLocalizations l10n;
   bool _isReady = false;
 
   static final _log = Logger('AwesomeNotificationService');
@@ -79,8 +94,14 @@ class AwesomeNotificationService implements NotificationService {
     required this.key,
     required this.name,
     required this.description,
+    required this.l10n,
     this.updateChannel = false,
   });
+
+  @override
+  void setLocalizations(NotificationLocalizations l10n) {
+    this.l10n = l10n;
+  }
 
   Future<void> dispose() async {
     AwesomeNotifications().dispose();
@@ -186,7 +207,7 @@ class AwesomeNotificationService implements NotificationService {
         repeats: false,
         // timezone: utcTimeZone,
       ),
-      actionButtons: [_notificationActionButton('stop', 'STOP SIGNAL')],
+      actionButtons: [_notificationActionButton('stop', l10n.stopSignalButton)],
     );
   }
 
@@ -373,23 +394,25 @@ class TimersCubitState extends Equatable {
 }
 
 class TimerLocalizations {
-  TimerLocalizations(this.l10n);
+  TimerLocalizations([this.l10n]);
 
   factory TimerLocalizations.of(BuildContext context) {
-    return TimerLocalizations(AppLocalizations.of(context)!);
+    return TimerLocalizations(AppLocalizations.of(context));
   }
 
-  final AppLocalizations l10n;
+  final AppLocalizations? l10n;
 
   String get defaultName => 'timer';
 }
 
 class TimersCubit extends Cubit<TimersCubitState> {
-  TimersCubit(this.timerRepo, this.clock) : super(TimersCubitState());
+  TimersCubit(this.timerRepo, this.clock, this.l10n)
+      : super(TimersCubitState());
 
   // Future<List<Timer>>? _timers;
   final TimerRepo timerRepo;
   final Clock clock;
+  TimerLocalizations l10n;
   static final _log = Logger('TimersCubit');
 
   void _handleError(Exception e, [StackTrace? st]) {
@@ -399,11 +422,11 @@ class TimersCubit extends Cubit<TimersCubitState> {
 
   // void increment() => emit(state + 1);
   // void decrement() => emit(state - 1);
-  Future<void> init(TimerLocalizations l10n) async {
+  Future<void> init() async {
     try {
       var timers = await timerRepo.list();
       if (timers.isEmpty) {
-        await _populate(l10n);
+        await _populate();
         timers = await timerRepo.list();
       }
       emit(TimersCubitState(timers: timers));
@@ -436,7 +459,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
     // ]));
   }
 
-  Future<void> _populate(TimerLocalizations l10n) async {
+  Future<void> _populate() async {
     for (final timer in initialTimers(l10n)) {
       await timerRepo.create(timer);
     }
@@ -803,7 +826,8 @@ class TimerList extends StatelessWidget {
               timer,
               context.read<TimerRepo>(),
               context.read<Clock>(),
-              context.read<NotificationService>(),
+              context.read<NotificationService>()
+                ..setLocalizations(NotificationLocalizations.of(context)),
             ),
             child: TimerListItem(/* key: Key(timer.id.toString()) */),
           ),
