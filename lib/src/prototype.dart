@@ -45,11 +45,11 @@ import 'l10n/gen/app_localizations.dart';
 
 class FirstRun {
   static const _key = '_is_first_run';
-  final bool isFirstRun;
+  bool _isFirstRun;
 
-  FirstRun._(this.isFirstRun);
+  FirstRun._(this._isFirstRun);
 
-  // bool? get isFirstRun => _isFirstRun;
+  bool get isFirstRun => _isFirstRun;
 
   static Future<FirstRun> init() async {
     final prefs = await SharedPreferences.getInstance();
@@ -61,6 +61,11 @@ class FirstRun {
     return FirstRun._(true);
   }
 
+  Future<void> reset() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove(_key);
+    _isFirstRun = true;
+  }
 }
 
 extension LoggerExt on Logger {
