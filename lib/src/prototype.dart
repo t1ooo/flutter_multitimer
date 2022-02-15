@@ -477,10 +477,6 @@ class TimersCubit extends Cubit<TimersCubitState> {
   Future<void> init() async {
     try {
       var timers = await timerRepo.list();
-      if (timers.isEmpty) {
-        await _populate();
-        timers = await timerRepo.list();
-      }
       emit(TimersCubitState(timers: timers));
     } on Exception catch (e) {
       _handleError(e);
@@ -511,11 +507,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
     // ]));
   }
 
-  Future<void> _populate() async {
-    for (final timer in initialTimers(l10n)) {
-      await timerRepo.create(timer);
-    }
-  }
+
 
   Future<void> create(Timer timer) async {
     _log.info('create');
@@ -577,46 +569,6 @@ class TimersCubit extends Cubit<TimersCubitState> {
   // Future<void> resume(Timer timer) async {}
 }
 
-List<Timer> initialTimers(TimerLocalizations l10n) {
-  return [
-    Timer(
-      id: 0,
-      name: 'stop',
-      duration: Duration(seconds: 60 * 60 * 2),
-      countdown: Duration(seconds: 60 * 60 * 2),
-      status: TimerStatus.stop,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
-    ),
-    Timer(
-      id: 1,
-      name: 'stop',
-      duration: Duration(seconds: 125),
-      countdown: Duration(seconds: 125),
-      status: TimerStatus.stop,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
-    ),
-    Timer(
-      id: 2,
-      name: 'pause',
-      duration: Duration(seconds: 5),
-      countdown: Duration(seconds: 5),
-      status: TimerStatus.pause,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
-    ),
-    Timer(
-      id: 3,
-      name: 'start',
-      duration: Duration(seconds: 10),
-      countdown: Duration(seconds: 10),
-      status: TimerStatus.start,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
-    ),
-  ];
-}
 
 class TimerCubitState {
   final Timer timer;
