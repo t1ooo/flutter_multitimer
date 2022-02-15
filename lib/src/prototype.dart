@@ -11,10 +11,57 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'l10n/gen/app_localizations.dart';
 
 // const dismissNotificationAfter = Duration(seconds: 10);
+
+// class FirstRun {
+//   final _key = '_is_first_run';
+//   bool? _isFirstRun;
+
+//   bool? get isFirstRun => _isFirstRun;
+
+//   Future<void> check() async {
+//     if (_isFirstRun != null) {
+//       return;
+//     }
+//     final prefs = await SharedPreferences.getInstance();
+//     if (prefs.containsKey(_key)) {
+//       _isFirstRun = false;
+//       return;
+//     }
+
+//     prefs.setBool(_key, true);
+//     _isFirstRun = true;
+//   }
+
+//   Future<void> reset() async {
+//      final prefs = await SharedPreferences.getInstance();
+//      prefs.remove(_key);
+//   }
+// }
+
+class FirstRun {
+  static const _key = '_is_first_run';
+  final bool isFirstRun;
+
+  FirstRun._(this.isFirstRun);
+
+  // bool? get isFirstRun => _isFirstRun;
+
+  static Future<FirstRun> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey(_key)) {
+      return FirstRun._(false);
+    }
+
+    prefs.setBool(_key, true);
+    return FirstRun._(true);
+  }
+
+}
 
 extension LoggerExt on Logger {
   void error(Object? message, [Object? error, StackTrace? stackTrace]) {
