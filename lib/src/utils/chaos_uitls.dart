@@ -7,7 +7,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 
-const kRandomExceptionProbability = 50;
+const kRandomExceptionProbability = 0;
 const kRandomDelayMin = Duration(milliseconds: 1000);
 const kRandomDelayMax = Duration(milliseconds: 1000);
 

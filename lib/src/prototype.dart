@@ -459,7 +459,7 @@ class Timer extends Equatable {
   final int id;
   final String name;
   final Duration duration;
-  final Duration countdown;
+  final Duration rest;
   final TimerStatus status;
   final DateTime lastUpdate;
   final DateTime startedAt;
@@ -468,7 +468,7 @@ class Timer extends Equatable {
     required this.id,
     required this.name,
     required this.duration,
-    required this.countdown,
+    required this.rest,
     required this.status,
     required this.lastUpdate,
     required this.startedAt,
@@ -481,11 +481,21 @@ class Timer extends Equatable {
   // })  : countdown = duration,
   //       status = TimerStatus.stop;
 
+  Duration calculateCountdown(DateTime now) {
+    if (status == TimerStatus.start || status == TimerStatus.pause) {
+      final stopAt = startedAt.add(rest);
+      final countdown = stopAt.difference(now);
+      print('$rest, $countdown');
+      return countdown;
+    }
+    return duration;
+  }
+
   Timer copyWith({
     int? id,
     String? name,
     Duration? duration,
-    Duration? countdown,
+    Duration? rest,
     TimerStatus? status,
     DateTime? lastUpdate,
     DateTime? startedAt,
@@ -494,7 +504,7 @@ class Timer extends Equatable {
       id: id ?? this.id,
       name: name ?? this.name,
       duration: duration ?? this.duration,
-      countdown: countdown ?? this.countdown,
+      rest: rest ?? this.rest,
       status: status ?? this.status,
       lastUpdate: lastUpdate ?? this.lastUpdate,
       startedAt: startedAt ?? this.startedAt,
@@ -503,7 +513,7 @@ class Timer extends Equatable {
 
   @override
   List<Object?> get props =>
-      [id, name, duration, countdown, status, lastUpdate, startedAt];
+      [id, name, duration, rest, status, lastUpdate, startedAt];
 }
 
 Timer draftTimer() {
@@ -511,7 +521,7 @@ Timer draftTimer() {
     id: 0,
     name: 'timer',
     duration: Duration(minutes: 5),
-    countdown: Duration(minutes: 5),
+    rest: Duration(minutes: 5),
     status: TimerStatus.stop,
     lastUpdate: DateTime.now(),
     startedAt: DateTime.now(),
@@ -622,7 +632,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
     _log.info('create');
     try {
       await timerRepo.create(timer.copyWith(
-        countdown: timer.duration,
+        rest: timer.duration,
         lastUpdate: clock.now(),
         status: TimerStatus.stop,
       ));
@@ -644,7 +654,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
       //      cons: we need to sort timers because recreated timer will move to the end of the list
 
       await timerRepo.update(timer.copyWith(
-        countdown: timer.duration,
+        rest: timer.duration,
         lastUpdate: clock.now(),
         status: TimerStatus.stop,
       ));
@@ -753,8 +763,9 @@ class TimerCubit extends Cubit<TimerCubitState> {
 
   void _init() {
     if (state.timer.status == TimerStatus.start) {
-      final stopAt = state.timer.startedAt.add(state.timer.countdown);
-      final countdown = stopAt.difference(clock.now()) + Duration(seconds: 2);
+      // final stopAt = state.timer.startedAt.add(state.timer.countdown);
+      // final countdown = stopAt.difference(clock.now()) + Duration(seconds: 2);
+      final countdown = state.timer.calculateCountdown(clock.now());
       if (countdown <= Duration.zero) {
         _log.info('timer ended when the app was not running: ${state.timer}');
         _done();
@@ -800,7 +811,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
     final timer = state.timer.copyWith(
       // status: TimerStatus.start,
       startedAt: clock.now(),
-      countdown: countdown,
+      // rest: countdown,
     );
     emit(TimerCubitState(timer: timer));
 
@@ -821,7 +832,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
   Future<void> _done() async {
     final timer = state.timer.copyWith(
       status: TimerStatus.stop,
-      countdown: state.timer.duration,
+      rest: state.timer.duration,
     );
     emit(TimerCubitState(timer: timer));
 
@@ -831,7 +842,10 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   Future<void> pause() async {
-    final timer = state.timer.copyWith(status: TimerStatus.pause);
+    final timer = state.timer.copyWith(
+      status: TimerStatus.pause,
+      rest: state.timer.calculateCountdown(clock.now()),
+    );
     emit(TimerCubitState(timer: timer));
 
     _tickerSub?.pause();
@@ -861,19 +875,20 @@ class TimerCubit extends Cubit<TimerCubitState> {
       return;
     }
 
-    final timer = state.timer.copyWith(countdown: countdown);
+    // final timer = state.timer.copyWith(countdown: countdown);
+    final timer = state.timer.copyWith();
     emit(TimerCubitState(timer: timer));
 
-    if (countdown.inSeconds % saveInterval.inSeconds == 0) {
-      _updateTimer(timer);
-    }
+    // if (countdown.inSeconds % saveInterval.inSeconds == 0) {
+    // _updateTimer(timer);
+    // }
   }
 
   Future<void> _sendNotification(Timer timer) async {
     await notificationService.cancel(state.timer.id);
     await notificationService.sendDelayed(
       Notification(timer.id, timer.name, l10n.notificationBody),
-      timer.countdown,
+      timer.calculateCountdown(clock.now()),
       [NotificationAction('stop', l10n.stopSignalButton)],
     );
   }
@@ -1226,6 +1241,7 @@ class TimerListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.watch<TimerCubit>();
+    final clock = context.read<Clock>();
 
     // TODO: MAYBE: find a better solution to update TimerCubit's dependency
     cubit.setLocalizations(NotificationLocalizations.of(context));
@@ -1241,7 +1257,7 @@ class TimerListItem extends StatelessWidget {
 
     const iconSize = 40.0;
     // timer.countdown.inSeconds
-    final fmtCountdown = formatCountdown(timer.countdown);
+    final fmtCountdown = formatCountdown(timer.calculateCountdown(clock.now()));
 
     return InkWell(
       child: Padding(
@@ -1379,6 +1395,7 @@ class TimerListItemV2 extends StatelessWidget {
 
   Widget builder(BuildContext context) {
     final cubit = context.watch<TimerCubit>();
+    final clock = context.read<Clock>();
 
     if (cubit.state.error != null) {
       showErrorSnackBar(
@@ -1391,7 +1408,7 @@ class TimerListItemV2 extends StatelessWidget {
 
     const iconSize = 40.0;
     // timer.countdown.inSeconds
-    final fmtCountdown = formatCountdown(timer.countdown);
+    final fmtCountdown = formatCountdown(timer.calculateCountdown(clock.now()));
 
     return InkWell(
       child: Padding(
