@@ -48,11 +48,11 @@ Future<NotificationService> notificationService() async {
 
 Future<TimerRepo> timerRepo(bool isFirstRun) async {
   final timerRepo = InMemoryTimerRepo();
-  if (isFirstRun) {
+  // if (isFirstRun) {
     for (final timer in initialTimers()) {
       await timerRepo.create(timer);
     }
-  }
+  // }
   return timerRepo;
 }
 

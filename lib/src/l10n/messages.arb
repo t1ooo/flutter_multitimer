@@ -1,0 +1,14 @@
+{
+  "timersLoadError": "",
+  "timerCreateError": "",
+  "timerUpdateError": "",
+  "timerDeleteError": "",
+
+  "settingsLoadError": "",
+  "updateLocaleError": "",
+  
+  "appTitle": "",
+  "@appTitle": {
+    "description": "The title of the application"
+  }
+}

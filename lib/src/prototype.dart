@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:clock/clock.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -14,6 +15,8 @@ import 'package:logging/logging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'l10n/gen/app_localizations.dart';
+import 'settings.dart';
+import 'settings_repository.dart';
 
 // const dismissNotificationAfter = Duration(seconds: 10);
 
@@ -1561,5 +1564,83 @@ class TimerEdit extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+enum SettingsCubitError {
+  load,
+  updateLocale,
+}
+
+extension SettingsCubitErrorLocalizations on SettingsCubitError {
+  String tr(AppLocalizations l10n) {
+    switch (this) {
+      case SettingsCubitError.load:
+        return l10n.settingsLoadError;
+      case SettingsCubitError.updateLocale:
+        return l10n.updateLocaleError;
+    }
+  }
+}
+
+class SettingsCubitState extends Equatable {
+  final Settings? settings;
+  final SettingsCubitError? error;
+
+  SettingsCubitState({
+    this.settings,
+    this.error,
+  });
+
+  @override
+  List<Object?> get props => [settings, error];
+
+  SettingsCubitState copyWith({
+    Settings? settings,
+    SettingsCubitError? error,
+  }) {
+    return SettingsCubitState(
+      settings: settings ?? this.settings,
+      error: error ?? this.error,
+    );
+  }
+}
+
+class SettingsCubit extends Cubit<SettingsCubitState> {
+  SettingsCubit(this.settingsRepo, this.clock) : super(SettingsCubitState());
+
+  // Future<List<Timer>>? _timers;
+  final SettingsRepo settingsRepo;
+  final Clock clock;
+  static final _log = Logger('SettingsCubit');
+
+  void _handleError(Exception e, SettingsCubitError error) {
+    _log.error('', e);
+    emit(state.copyWith(error: error)); // set error, keep the previous timers
+  }
+
+  // void increment() => emit(state + 1);
+  // void decrement() => emit(state - 1);
+  Future<void> load() async {
+    try {
+      final settings = await settingsRepo.get();
+      emit(SettingsCubitState(settings: settings));
+    } on Exception catch (e) {
+      _handleError(e, SettingsCubitError.load);
+    }
+  }
+
+  Future<void> updateLocale(Locale locale) async {
+    _log.info('update');
+
+    try {
+      await settingsRepo.update((await settingsRepo.get())!.copyWith(
+        locale: locale,
+      ));
+      final settings = await settingsRepo.get();
+      emit(SettingsCubitState(settings: settings));
+    } on Exception catch (e) {
+      _handleError(e, SettingsCubitError.updateLocale);
+    }
   }
 }
