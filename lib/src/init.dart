@@ -31,19 +31,15 @@ void configureLogger() {
   });
 }
 
-
-
 Future<NotificationService> notificationService() async {
   if (Platform.isAndroid) {
-    final ns = AwesomeNotificationService(
+    return await AwesomeNotificationService.init(
       key: 'mutlitimer key',
       name: 'mutlitimer name',
       description: 'mutlitimer desc',
-      l10n: NotificationLocalizations(),
-      updateChannel: true,
+      // l10n: NotificationLocalizations(),
+      // updateChannel: true,
     );
-    await ns.init();
-    return ns;
   }
   return TimerNotificationService();
 }
@@ -51,9 +47,9 @@ Future<NotificationService> notificationService() async {
 Future<TimerRepo> timerRepo(bool isFirstRun) async {
   final timerRepo = InMemoryTimerRepo();
   // if (isFirstRun) {
-    for (final timer in initialTimers()) {
-      await timerRepo.create(timer);
-    }
+  for (final timer in initialTimers()) {
+    await timerRepo.create(timer);
+  }
   // }
   return timerRepo;
 }
@@ -61,9 +57,9 @@ Future<TimerRepo> timerRepo(bool isFirstRun) async {
 Future<SettingsRepo> settingsRepo(bool isFirstRun) async {
   final settingsRepo = InmemorySettingsRepo();
   // if (isFirstRun) {
-    // for (final timer in initialTimers()) {
-      // await timerRepo.create(timer);
-    // }
+  // for (final timer in initialTimers()) {
+  // await timerRepo.create(timer);
+  // }
   // }
   return settingsRepo;
 }

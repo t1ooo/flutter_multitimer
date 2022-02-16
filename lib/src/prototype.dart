@@ -1,6 +1,7 @@
 // TODO: enable all analysis_options.yaml
 // TODO: Navigator.pushNamed
 // TODO: nullable Settings.locale, add init to Repo
+// TODO: remove countdown field, calculate countdown
 
 import 'dart:async' as async;
 import 'dart:io';
@@ -89,10 +90,16 @@ class Notification extends Equatable {
 }
 
 abstract class NotificationService {
-  Future<void> sendDelayed(Notification notification, Duration delay);
+  Future<void> sendDelayed(
+    Notification notification,
+    Duration delay, [
+    List<NotificationAction>? actions,
+  ]);
   Future<void> cancel(int id);
   Future<void> dismiss(int id);
-  void setLocalizations(NotificationLocalizations l10n);
+  Future<void> dispose();
+
+  // void setLocalizations(NotificationLocalizations l10n);
 }
 
 class TimerNotificationService implements NotificationService {
@@ -100,7 +107,11 @@ class TimerNotificationService implements NotificationService {
   final _timers = <int, async.Timer>{};
 
   @override
-  Future<void> sendDelayed(Notification notification, Duration delay) async {
+  Future<void> sendDelayed(
+    Notification notification,
+    Duration delay, [
+    List<NotificationAction>? actions,
+  ]) async {
     _log.info('register: $notification');
     final timer = async.Timer(delay, () => _log.info('fire: $notification'));
     _timers[notification.id] = timer;
@@ -119,67 +130,85 @@ class TimerNotificationService implements NotificationService {
   }
 
   @override
-  void setLocalizations(NotificationLocalizations l10n) {
+  async.Future<void> dispose() async {
     return;
   }
+
+  // @override
+  // void setLocalizations(NotificationLocalizations l10n) {
+  //   return;
+  // }
 }
 
 class NotificationLocalizations {
-  NotificationLocalizations([this.l10n]);
+  NotificationLocalizations(this.l10n);
 
   factory NotificationLocalizations.of(BuildContext context) {
-    return NotificationLocalizations(AppLocalizations.of(context));
+    return NotificationLocalizations(AppLocalizations.of(context)!);
   }
 
-  final AppLocalizations? l10n;
+  final AppLocalizations l10n;
 
-  String get notificationBody => l10n?.notificationBody ?? '';
-  String get stopSignalButton => l10n?.stopSignalButton ?? 'STOP SIGNAL';
+  String get notificationBody => l10n.notificationBody;
+  String get stopSignalButton => l10n.stopSignalButton;
 
   // String get notificationBody => null;
+}
+
+class NotificationAction {
+  final String key;
+  final String label;
+
+  NotificationAction(this.key, this.label);
 }
 
 class AwesomeNotificationService implements NotificationService {
   final String key;
   final String name;
   final String description;
-  final bool updateChannel;
-  NotificationLocalizations l10n;
-  bool _isReady = false;
+  // final bool updateChannel;
+  // NotificationLocalizations l10n;
+  // bool _isReady = false;
 
   static final _log = Logger('AwesomeNotificationService');
 
-  AwesomeNotificationService({
+  // AwesomeNotificationService({
+  //   required this.key,
+  //   required this.name,
+  //   required this.description,
+  //   // required this.l10n,
+  //   this.updateChannel = false,
+  // });
+
+  // @override
+  // void setLocalizations(NotificationLocalizations l10n) {
+  //   this.l10n = l10n;
+  // }
+
+  AwesomeNotificationService._({
     required this.key,
     required this.name,
     required this.description,
-    required this.l10n,
-    this.updateChannel = false,
   });
 
   @override
-  void setLocalizations(NotificationLocalizations l10n) {
-    this.l10n = l10n;
-  }
-
   Future<void> dispose() async {
     AwesomeNotifications().dispose();
   }
 
-  Future<void> init() async {
-    if (_isReady) {
-      return;
-    }
-
+  static Future<AwesomeNotificationService> init({
+    required String key,
+    required String name,
+    required String description,
+    bool updateChannel = false,
+  }) async {
     final notificationChannel = NotificationChannel(
       channelKey: key,
       channelName: name,
       channelDescription: description,
       importance: NotificationImportance.Max,
+      playSound: false,
       defaultPrivacy: NotificationPrivacy.Public,
-      playSound: true,
-      // defaultRingtoneType: DefaultRingtoneType.Alarm,
-      defaultRingtoneType: DefaultRingtoneType.Notification,
     );
 
     await AwesomeNotifications().initialize(null, []);
@@ -190,39 +219,12 @@ class AwesomeNotificationService implements NotificationService {
       notificationChannel,
       forceUpdate: false,
     );
-
-    _isReady = true;
+    return AwesomeNotificationService._(
+      key: key,
+      name: name,
+      description: description,
+    );
   }
-
-  // static Future<AwesomeNotificationService> init({
-  //   required String key,
-  //   required String name,
-  //   required String description,
-  //   bool updateChannel = false,
-  // }) async {
-  //   final notificationChannel = NotificationChannel(
-  //     channelKey: key,
-  //     channelName: name,
-  //     channelDescription: description,
-  //     importance: NotificationImportance.Max,
-  //     playSound: false,
-  //     defaultPrivacy: NotificationPrivacy.Public,
-  //   );
-
-  //   await AwesomeNotifications().initialize(null, []);
-  //   if (updateChannel) {
-  //     await AwesomeNotifications().removeChannel(key);
-  //   }
-  //   await AwesomeNotifications().setChannel(
-  //     notificationChannel,
-  //     forceUpdate: false,
-  //   );
-  //   return AwesomeNotificationService._(
-  //     key: key,
-  //     name: name,
-  //     description: description,
-  //   );
-  // }
 
   @override
   async.Future<void> cancel(int id) async {
@@ -241,8 +243,9 @@ class AwesomeNotificationService implements NotificationService {
   @override
   async.Future<void> sendDelayed(
     Notification notification,
-    Duration delay,
-  ) async {
+    Duration delay, [
+    List<NotificationAction>? actions,
+  ]) async {
     // await _init();
     _log.info('sendDelayed: $notification, $delay');
     String localTimeZone =
@@ -266,21 +269,22 @@ class AwesomeNotificationService implements NotificationService {
         repeats: false,
         // timezone: utcTimeZone,
       ),
-      actionButtons: [_notificationActionButton('stop', l10n.stopSignalButton)],
+      // actionButtons: [_notificationActionButton('stop', l10n.stopSignalButton)],
+      actionButtons: actions?.map(_notificationActionButton).toList(),
     );
   }
 
   static NotificationActionButton _notificationActionButton(
-    String key,
-    String label,
-  ) =>
-      NotificationActionButton(
-        key: key,
-        label: label,
-        autoDismissible: true,
-        showInCompactView: true,
-        buttonType: ActionButtonType.KeepOnTop,
-      );
+    NotificationAction action,
+  ) {
+    return NotificationActionButton(
+      key: action.key,
+      label: action.label,
+      autoDismissible: true,
+      showInCompactView: true,
+      buttonType: ActionButtonType.KeepOnTop,
+    );
+  }
 }
 
 // class SnackBarNotification implements NotificationService {
@@ -716,7 +720,8 @@ class TimerCubit extends Cubit<TimerCubitState> {
     Timer timer,
     this.timerRepo,
     this.clock,
-    this.notificationService, [
+    this.notificationService,
+    this.l10n, [
     this.saveInterval = const Duration(seconds: 10),
     this.ticker = const Ticker(),
   ]) : super(TimerCubitState(timer: timer)) {
@@ -734,13 +739,14 @@ class TimerCubit extends Cubit<TimerCubitState> {
   final Clock clock;
   final Ticker ticker;
   async.StreamSubscription<Duration>? _tickerSub;
+  NotificationLocalizations l10n;
   static final _log = Logger('TimerCubit');
   // static const notificationId = 0;
 
   void _init() {
     if (state.timer.status == TimerStatus.start) {
       final stopAt = state.timer.startedAt.add(state.timer.countdown);
-      final countdown = stopAt.difference(clock.now()) + Duration(seconds: 1);
+      final countdown = stopAt.difference(clock.now()) + Duration(seconds: 2);
       if (countdown <= Duration.zero) {
         _log.info('timer ended when the app was not running: ${state.timer}');
         _done();
@@ -858,9 +864,9 @@ class TimerCubit extends Cubit<TimerCubitState> {
   Future<void> _sendNotification(Timer timer) async {
     await notificationService.cancel(state.timer.id);
     await notificationService.sendDelayed(
-      Notification(timer.id, timer.name, ''),
-      timer.countdown,
-    );
+        Notification(timer.id, timer.name, l10n.notificationBody),
+        timer.countdown,
+        [NotificationAction('stop', l10n.stopSignalButton)]);
   }
 
   Future<void> _updateTimer(Timer timer) async {
@@ -870,6 +876,11 @@ class TimerCubit extends Cubit<TimerCubitState> {
       _log.error(e);
       state.copyWith(error: TimerCubitError.update);
     }
+  }
+
+  void setLocalizations(NotificationLocalizations l10n) {
+    // print('setLocalizations');
+    this.l10n = l10n;
   }
 }
 
@@ -970,7 +981,7 @@ class TimerList extends StatelessWidget {
     if (cubit.state.timers == null) {
       return Center(child: CircularProgressIndicator());
     }
-    // print('rebuild');
+    // print(AppLocalizations.of(context));
     return ListView(
       // direction: Axis.vertical,
       // crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -986,11 +997,31 @@ class TimerList extends StatelessWidget {
               timer,
               context.read<TimerRepo>(),
               context.read<Clock>(),
-              context.read<NotificationService>()
-                ..setLocalizations(NotificationLocalizations.of(context)),
-            ),
+              context.read<NotificationService>(),
+              NotificationLocalizations.of(context),
+            ), //..setLocalizations(NotificationLocalizations.of(context)),
+            // create: (_) {
+            //   final timerCubit = TimerCubit(
+            //     timer,
+            //     context.read<TimerRepo>(),
+            //     context.read<Clock>(),
+            //     context.read<NotificationService>(),
+            //     NotificationLocalizations.of(context),
+            //   );
+            //   context.read<SettingsCubit>().stream.listen((event) {
+            //     // print(event);
+            //     // print(AppLocalizations.of(context));
+            //     timerCubit
+            //         .setLocalizations(NotificationLocalizations.of(context));
+            //   });
+            //   return timerCubit;
+            // }, //..setLocalizations(NotificationLocalizations.of(context)),
             child: TimerListItem(/* key: Key(timer.id.toString()) */),
           ),
+        // TimerListItemV2(
+        //   key: Key('${timer.id} ${timer.lastUpdate}'),
+        //   timer: timer,
+        // ),
         // BlocBuilder<TimerCubit, TimerCubitState>(
         //   bloc: TimerCubit(timer),
         //   builder: (BuildContext context, state) { return Container(); },
@@ -1173,6 +1204,159 @@ class TimerListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cubit = context.watch<TimerCubit>();
+
+    // TODO: MAYBE: find a better solution to update TimerCubit's dependency
+    cubit.setLocalizations(NotificationLocalizations.of(context));
+
+    if (cubit.state.error != null) {
+      showErrorSnackBar(
+        context,
+        cubit.state.error!.tr(AppLocalizations.of(context)!),
+      );
+    }
+
+    final timer = cubit.state.timer;
+
+    const iconSize = 40.0;
+    // timer.countdown.inSeconds
+    final fmtCountdown = formatCountdown(timer.countdown);
+
+    return InkWell(
+      child: Padding(
+        // padding: pagePadding,
+        padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 10),
+        child: Column(
+          // mainAxisAlignment: MainAxisAlignment.center,
+          // crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Text('name'),
+            // SizedBox(height: 5),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Row(
+                //   crossAxisAlignment: CrossAxisAlignment.baseline,
+                //   textBaseline: TextBaseline.ideographic,
+                //   children: [
+                //     Text(
+                //       '00:24:00',
+                //       style: TextStyle(fontSize: 25),
+                //     ),
+                //     // SizedBox(width: 10),
+                //     // Text(timer.name),
+                //   ],
+
+                // ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('${timer.name} ${timer.id}'),
+                    SizedBox(height: 5),
+                    Text(
+                      fmtCountdown,
+                      style: TextStyle(fontSize: 25),
+                    ),
+                  ],
+                ),
+                // Switch(value: alarm.isActive, onChanged: (_) => onToggle()),
+                ButtonBar(
+                    // alignment: MainAxisAlignment.end,
+                    children: [
+                      if (timer.status == TimerStatus.stop) ...[
+                        ElevatedButton(
+                          child: Icon(Icons.play_arrow, size: iconSize),
+                          onPressed: () {
+                            cubit.start();
+                          },
+                        )
+                      ] else if (timer.status == TimerStatus.pause) ...[
+                        ElevatedButton(
+                          child: Icon(Icons.stop, size: iconSize),
+                          onPressed: () {
+                            cubit.stop();
+                          },
+                        ),
+                        SizedBox(width: 10),
+                        ElevatedButton(
+                          child: Icon(Icons.play_arrow, size: iconSize),
+                          onPressed: () {
+                            cubit.start();
+                          },
+                        ),
+                      ] else ...[
+                        ElevatedButton(
+                          child: Icon(Icons.stop, size: iconSize),
+                          onPressed: () {
+                            cubit.stop();
+                          },
+                        ),
+                        SizedBox(width: 10),
+                        ElevatedButton(
+                          child: Icon(Icons.pause, size: iconSize),
+                          onPressed: () {
+                            cubit.pause();
+                          },
+                        ),
+                      ],
+                    ]),
+              ],
+            ),
+            SizedBox(height: 10),
+            LinearProgressIndicator(value: 0.5),
+          ],
+        ),
+      ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => TimerEditView(timer: timer)),
+        );
+      },
+    );
+  }
+}
+
+class TimerListItemV2 extends StatelessWidget {
+  TimerListItemV2({
+    Key? key,
+    required this.timer,
+  }) : super(key: key);
+
+  final Timer timer;
+
+  @override
+  Widget build(BuildContext context) {
+    // return BlocBuilder<TimerCubit, TimerCubitState>(
+    //   bloc: TimerCubit(
+    //     timer,
+    //     context.read<TimerRepo>(),
+    //     context.read<Clock>(),
+    //     context.read<NotificationService>(),
+    //     NotificationLocalizations.of(context),
+    //   ),
+    //   builder: builder,
+    // );
+    return BlocProvider(
+      // we need key in BlocProvider to update TimerCubit when timer is updated
+      // TODO: remove lastUpdate from Timer, replace key to {timer.id timer.status}
+      // key: Key('${timer.id} ${timer.lastUpdate}'),
+      // key: Key('${timer.id} ${timer.status}'),
+      // key: Key('${timer.id}'),
+      create: (_) => TimerCubit(
+        timer,
+        context.read<TimerRepo>(),
+        context.read<Clock>(),
+        context.read<NotificationService>(),
+        NotificationLocalizations.of(context),
+        // ..setLocalizations(NotificationLocalizations.of(context)),
+      ), //..setLocalizations(NotificationLocalizations.of(context)),
+      child: TimerListItem(/* key: Key(timer.id.toString()) */),
+    );
+  }
+
+  Widget builder(BuildContext context) {
     final cubit = context.watch<TimerCubit>();
 
     if (cubit.state.error != null) {
