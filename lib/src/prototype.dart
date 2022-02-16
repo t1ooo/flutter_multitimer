@@ -19,6 +19,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'l10n/gen/app_localizations.dart';
 import 'settings.dart';
 import 'settings_repository.dart';
+import 'utils/chaos_uitls.dart';
 
 // const dismissNotificationAfter = Duration(seconds: 10);
 
@@ -582,17 +583,12 @@ class TimersCubit extends Cubit<TimersCubitState> {
   final Clock clock;
   static final _log = Logger('TimersCubit');
 
-  void _handleError(Exception e, TimersCubitError error) {
-    _log.error('', e);
-    emit(state.copyWith(error: error)); // set error, keep the previous timers
-  }
-
   // void increment() => emit(state + 1);
   // void decrement() => emit(state - 1);
   Future<void> load() async {
     try {
       var timers = await timerRepo.list();
-      emit(TimersCubitState(timers: timers));
+      await _emitState(TimersCubitState(timers: timers));
     } on Exception catch (e) {
       _handleError(e, TimersCubitError.load);
     }
@@ -631,7 +627,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
         status: TimerStatus.stop,
       ));
       final timers = await timerRepo.list();
-      emit(TimersCubitState(timers: timers));
+      await _emitState(TimersCubitState(timers: timers));
     } on Exception catch (e) {
       _handleError(e, TimersCubitError.create);
     }
@@ -659,8 +655,9 @@ class TimersCubit extends Cubit<TimersCubitState> {
       //   lastUpdate: clock.now(),
       //   status: TimerStatus.stop,
       // ));
+
       final timers = await timerRepo.list();
-      emit(TimersCubitState(timers: timers));
+      await _emitState(TimersCubitState(timers: timers));
     } on Exception catch (e) {
       _handleError(e, TimersCubitError.update);
     }
@@ -670,10 +667,21 @@ class TimersCubit extends Cubit<TimersCubitState> {
     try {
       await timerRepo.delete(timer);
       final timers = await timerRepo.list();
-      emit(TimersCubitState(timers: timers));
+      await _emitState(TimersCubitState(timers: timers));
     } on Exception catch (e) {
       _handleError(e, TimersCubitError.delete);
     }
+  }
+
+  Future<void> _emitState(TimersCubitState newState) async {
+    randomException();
+    await asyncRandomDelay();
+    emit(newState);
+  }
+
+  void _handleError(Exception e, TimersCubitError error) {
+    _log.error('', e);
+    emit(state.copyWith(error: error)); // set error, keep the previous timers
   }
 
   // Future<void> start(Timer timer) async {}
@@ -864,23 +872,36 @@ class TimerCubit extends Cubit<TimerCubitState> {
   Future<void> _sendNotification(Timer timer) async {
     await notificationService.cancel(state.timer.id);
     await notificationService.sendDelayed(
-        Notification(timer.id, timer.name, l10n.notificationBody),
-        timer.countdown,
-        [NotificationAction('stop', l10n.stopSignalButton)]);
+      Notification(timer.id, timer.name, l10n.notificationBody),
+      timer.countdown,
+      [NotificationAction('stop', l10n.stopSignalButton)],
+    );
   }
 
   Future<void> _updateTimer(Timer timer) async {
     try {
+      randomException();
+      await asyncRandomDelay();
       timerRepo.update(timer);
     } on Exception catch (e) {
-      _log.error(e);
-      state.copyWith(error: TimerCubitError.update);
+      _handleError(e, TimerCubitError.update);
     }
   }
 
   void setLocalizations(NotificationLocalizations l10n) {
     // print('setLocalizations');
     this.l10n = l10n;
+  }
+
+  // Future<void> _emitState(TimerCubitState newState) async {
+  //   randomException();
+  //   await asyncRandomDelay();
+  //   emit(newState);
+  // }
+
+  void _handleError(Exception e, TimerCubitError error) {
+    _log.error('', e);
+    emit(state.copyWith(error: error)); // set error, keep the previous timers
   }
 }
 
