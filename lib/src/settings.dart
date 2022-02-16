@@ -23,11 +23,6 @@ class Settings extends Equatable {
     );
   }
 
-  @override
-  String toString() {
-    return 'Settings ${toJson()}';
-  }
-
   factory Settings.fromJson(Map<String, dynamic> json) =>
       _$SettingsFromJson(json);
 

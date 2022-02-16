@@ -1,5 +1,6 @@
 // TODO: enable all analysis_options.yaml
 // TODO: Navigator.pushNamed
+// TODO: nullable Settings.locale, add init to Repo
 
 import 'dart:async' as async;
 import 'dart:io';
