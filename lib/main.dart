@@ -38,12 +38,13 @@ void main() async {
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(value: Clock()),
+        RepositoryProvider.value(value: await settingsRepo(firstRun.isFirstRun)),
         RepositoryProvider.value(value: await timerRepo(firstRun.isFirstRun)),
         RepositoryProvider.value(
           value: await notificationService(),
         ),
       ],
-      child: MyApp(settingsController: settingsController),
+      child: MyApp(),
     ),
   );
 }

@@ -7,6 +7,9 @@
   "settingsLoadError": "",
   "updateLocaleError": "",
   
+  "settingsTitle": "",
+  "languageLabel": "",
+
   "appTitle": "",
   "@appTitle": {
     "description": "The title of the application"

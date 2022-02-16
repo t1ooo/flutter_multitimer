@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_pomodoro_prototype_skeleton_bloc/src/prototype.dart';
 import 'package:logging/logging.dart';
 
+import 'settings_repository.dart';
+
 final _initLog = Logger('init');
 StreamSubscription<LogRecord>? _loggerSub;
 
@@ -54,6 +56,16 @@ Future<TimerRepo> timerRepo(bool isFirstRun) async {
     }
   // }
   return timerRepo;
+}
+
+Future<SettingsRepo> settingsRepo(bool isFirstRun) async {
+  final settingsRepo = InmemorySettingsRepo();
+  // if (isFirstRun) {
+    // for (final timer in initialTimers()) {
+      // await timerRepo.create(timer);
+    // }
+  // }
+  return settingsRepo;
 }
 
 List<Timer> initialTimers() {

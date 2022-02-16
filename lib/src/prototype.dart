@@ -1,5 +1,5 @@
 // TODO: enable all analysis_options.yaml
-// TODO: add l10n
+// TODO: Navigator.pushNamed
 
 import 'dart:async' as async;
 import 'dart:io';
@@ -910,6 +910,14 @@ class HomeView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Timers'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.pushNamed(context, SettingsView.routeName);
+            },
+          ),
+        ],
       ),
       // body: TimerList(),
       // body: BlocProvider(
@@ -1607,11 +1615,10 @@ class SettingsCubitState extends Equatable {
 }
 
 class SettingsCubit extends Cubit<SettingsCubitState> {
-  SettingsCubit(this.settingsRepo, this.clock) : super(SettingsCubitState());
+  SettingsCubit(this.settingsRepo) : super(SettingsCubitState());
 
   // Future<List<Timer>>? _timers;
   final SettingsRepo settingsRepo;
-  final Clock clock;
   static final _log = Logger('SettingsCubit');
 
   void _handleError(Exception e, SettingsCubitError error) {
@@ -1634,13 +1641,112 @@ class SettingsCubit extends Cubit<SettingsCubitState> {
     _log.info('update');
 
     try {
-      await settingsRepo.update((await settingsRepo.get())!.copyWith(
-        locale: locale,
-      ));
+      {
+        final settings = (await settingsRepo.get()) ?? Settings(locale: locale);
+        await settingsRepo.update(settings.copyWith(locale: locale));
+      }
       final settings = await settingsRepo.get();
       emit(SettingsCubitState(settings: settings));
     } on Exception catch (e) {
       _handleError(e, SettingsCubitError.updateLocale);
     }
+  }
+}
+
+class SettingsView extends StatelessWidget {
+  static const String routeName = '/settings';
+
+  SettingsView({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.settingsTitle),
+      ),
+      body: Padding(padding: pagePadding, child: SettingsForm()),
+    );
+  }
+}
+
+class SettingsForm extends StatelessWidget {
+  // final settingsProvider = locator<SettingsProvider>();
+  // final navigationService = locator<NavigationService>();
+  // static final _localeController = EditingController<Locale>(Locale('_'));
+
+  SettingsForm({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    // _localeController.value = settings.locale;
+    final cubit = context.watch<SettingsCubit>();
+
+    if (cubit.state.error != null) {
+      // return Text(cubit.state.error!.tr(AppLocalizations.of(context)!));
+      showErrorSnackBar(
+        context,
+        cubit.state.error!.tr(AppLocalizations.of(context)!),
+      );
+    }
+    // if (cubit.state.settings == null) {
+    // return Center(child: CircularProgressIndicator());
+    // }
+
+    return Form(
+      child: ListView(
+        children: [
+          // SizedBox(height: 10),
+          // ControlledSelectFormField<Locale>(
+          //   labelText: l10n.languageLabel,
+          //   controller: _localeController,
+          //   values: supportedLocales(),
+          //   onChange: (Locale locale) {
+          //     unawaited(settingsProvider.updateLocale(locale));
+          //   },
+          // ),
+
+          //  for (final locale in AppLocalizations.supportedLocales)
+          //   RadioListTile<Locale>(
+          //     title: Text(locale.toString()),
+          //     value: locale,
+          //     groupValue: Localizations.localeOf(context),
+          //     onChanged: (newValue) {
+          //       if (newValue == null) {
+          //         return;
+          //       }
+          //     //   controller.value = newValue;
+          //     //   onChange?.call(controller.value);
+
+          //     //   Navigator.pop(context);
+          //     },
+          //   )
+
+          DropdownButtonFormField<Locale>(
+            items: [
+              for (final locale in AppLocalizations.supportedLocales)
+                DropdownMenuItem<Locale>(
+                  value: locale,
+                  child: Text(locale.toString()),
+                ),
+            ],
+            value: Localizations.localeOf(context),
+            onChanged: (Locale? newLocale) {
+              if (newLocale == null) {
+                return;
+              }
+              cubit.updateLocale(newLocale);
+            },
+            decoration: InputDecoration(
+              labelText: l10n.languageLabel,
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -7,8 +7,8 @@
   "settingsLoadError": "Error: failed to load settings",
   "updateLocaleError": "Error: failed to update locale",
 
-  "appTitle": "flutter_pomodoro_prototype_skeleton_bloc",
-  "@appTitle": {
-    "description": "The title of the application"
-  }
+  "settingsTitle": "Settings",
+  "languageLabel": "Язык",
+
+  "appTitle": "flutter_pomodoro_prototype_skeleton_bloc"
 }

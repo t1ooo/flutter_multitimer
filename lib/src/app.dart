@@ -9,32 +9,42 @@ import 'package:flutter_pomodoro_prototype_skeleton_bloc/src/prototype.dart';
 import 'l10n/gen/app_localizations.dart';
 import 'sample_feature/sample_item_details_view.dart';
 import 'sample_feature/sample_item_list_view.dart';
-import 'settings/settings_controller.dart';
-import 'settings/settings_view.dart';
+import 'settings_repository.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({
     Key? key,
-    required this.settingsController,
+    // required this.settingsController,
   }) : super(key: key);
 
-  final SettingsController settingsController;
+  // final SettingsController settingsController;
 
   @override
   Widget build(BuildContext context) {
     // print(Localizations.localeOf(context));
-    return BlocProvider(
-      create: (context) =>
-          // TimersCubit(RepositoryProvider.of<TimerRepo>(context))..load(),
-          TimersCubit(context.read<TimerRepo>(), context.read<Clock>())..load(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<TimersCubit>(
+          create: (context) =>
+              // TimersCubit(RepositoryProvider.of<TimerRepo>(context))..load(),
+              TimersCubit(context.read<TimerRepo>(), context.read<Clock>())
+                ..load(),
+        ),
+        BlocProvider<SettingsCubit>(
+          create: (context) =>
+              SettingsCubit(context.read<SettingsRepo>())..load(),
+        ),
+      ],
       child: builder(context),
     );
   }
 
   Widget builder(BuildContext context) {
-    return AnimatedBuilder(
-      animation: settingsController,
-      builder: (BuildContext context, Widget? child) {
+    // final cubit = context.watch<SettingsCubit>();
+    return BlocBuilder<SettingsCubit, SettingsCubitState>(
+      // animation: settingsController,
+      builder: (BuildContext context, SettingsCubitState state) {
+        print('rebuild material app: ${state.settings?.locale}');
         return MaterialApp(
           restorationScopeId: 'app',
           localizationsDelegates: const [
@@ -43,21 +53,26 @@ class MyApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('en', ''),
-          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          locale: state.settings?.locale,
+          // localeResolutionCallback:  (Locale? _, Iterable<Locale>__)  {
+
+          // },
+          // localeListResolutionCallback: (List<Locale>? _, Iterable<Locale> __ ) {
+
+          // },
           onGenerateTitle: (BuildContext context) =>
               AppLocalizations.of(context)!.appTitle,
           theme: ThemeData(),
           darkTheme: ThemeData.dark(),
-          themeMode: settingsController.themeMode,
+          // themeMode: settingsController.themeMode,
           onGenerateRoute: (RouteSettings routeSettings) {
             return MaterialPageRoute<void>(
               settings: routeSettings,
               builder: (BuildContext context) {
                 switch (routeSettings.name) {
                   case SettingsView.routeName:
-                    return SettingsView(controller: settingsController);
+                    return SettingsView();
                   case SampleItemDetailsView.routeName:
                     return const SampleItemDetailsView();
                   case SampleItemListView.routeName:

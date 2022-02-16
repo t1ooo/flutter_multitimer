@@ -1,0 +1,14 @@
+{
+  "timersLoadError": "СДЕЛАТЬ",
+  "timerCreateError": "СДЕЛАТЬ",
+  "timerUpdateError": "СДЕЛАТЬ",
+  "timerDeleteError": "СДЕЛАТЬ",
+  
+  "settingsLoadError": "СДЕЛАТЬ",
+  "updateLocaleError": "СДЕЛАТЬ",
+
+  "settingsTitle": "Настройки",
+  "languageLabel": "Язык",
+
+  "appTitle": "flutter_pomodoro_prototype_skeleton_bloc"
+}
