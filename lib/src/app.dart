@@ -22,10 +22,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(Localizations.localeOf(context));
     return BlocProvider(
       create: (context) =>
           // TimersCubit(RepositoryProvider.of<TimerRepo>(context))..load(),
-          TimersCubit(context.read<TimerRepo>(), context.read<Clock>(), TimerLocalizations.of(context))..init(),
+          TimersCubit(context.read<TimerRepo>(), context.read<Clock>())..load(),
       child: builder(context),
     );
   }

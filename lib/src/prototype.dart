@@ -130,6 +130,8 @@ class NotificationLocalizations {
   final AppLocalizations? l10n;
 
   String get stopSignalButton => 'STOP SIGNAL';
+
+  // String get notificationBody => null;
 }
 
 class AwesomeNotificationService implements NotificationService {
@@ -275,6 +277,90 @@ class AwesomeNotificationService implements NotificationService {
         buttonType: ActionButtonType.KeepOnTop,
       );
 }
+
+// class SnackBarNotification implements NotificationService {
+//   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey;
+//   NotificationLocalizations l10n;
+//   static final _log = Logger('SnackBarNotification');
+
+//   SnackBarNotification(this.scaffoldMessengerKey, this.l10n);
+
+//   @override
+//   async.Future<void> cancel(int id) {
+//     // TODO: implement cancel
+//     throw UnimplementedError();
+//   }
+
+//   @override
+//   async.Future<void> dismiss(int id) {
+//     // TODO: implement dismiss
+//     throw UnimplementedError();
+//   }
+
+//   @override
+//   async.Future<void> sendDelayed(Notification notification, Duration delay) {
+//     // TODO: implement sendDelayed
+//     throw UnimplementedError();
+//   }
+
+//   @override
+//   void setLocalizations(NotificationLocalizations l10n) {
+//     this.l10n = l10n;
+//   }
+
+//   void _showSnackBar(SnackBar Function(BuildContext) snackBarBuilder) {
+//     // WidgetsBinding.instance?.addPostFrameCallback((_) {
+//     final currentState = scaffoldMessengerKey.currentState;
+//     if (currentState == null) {
+//       _log.info('currentState is empty; return');
+//       return;
+//     }
+//     // final currentContext = navigatorKey.currentContext;
+//     // if (currentContext == null) {
+//     //   _log.info('currentContext is empty; return');
+//     //   return;
+//     // }
+//     currentState.hideCurrentSnackBar();
+//     currentState.showSnackBar(snackBarBuilder());
+//     // });
+//   }
+
+//   void _hideCurrentSnackBar() {
+//     // WidgetsBinding.instance?.addPostFrameCallback((_) {
+//     final currentState = scaffoldMessengerKey.currentState;
+//     if (currentState == null) {
+//       return;
+//     }
+//     currentState.hideCurrentSnackBar();
+//     // });
+//   }
+
+//   SnackBar _buildSnackBar() {
+//     // final l10n = appLocalizations(context);
+
+//     return SnackBar(
+//       content: Row(
+//         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//         children: [
+//           Text(l10n.notificationBody),
+//           ButtonBar(
+//             children: [
+//               ElevatedButton(
+//                 onPressed: () => {}, // TODO,
+//                 child: Text(l10n.stopSignalButton),
+//               ),
+//               // ElevatedButton(
+//               //   onPressed: alarmRunnerClient.snooze,
+//               //   child: Text(l10n.notificationSnoozeButton),
+//               // ),
+//             ],
+//           ),
+//         ],
+//       ),
+//       duration: Duration(days: 365),
+//     );
+//   // }
+// }
 
 abstract class TimerRepo {
   Future<List<Timer>> list();
@@ -422,9 +508,43 @@ Timer draftTimer() {
   );
 }
 
+// class TimerLocalizations {
+//   TimerLocalizations([this.l10n]);
+
+//   factory TimerLocalizations.of(BuildContext context) {
+//     return TimerLocalizations(AppLocalizations.of(context));
+//   }
+
+//   final AppLocalizations? l10n;
+
+//   String get defaultName => 'timer';
+// }
+
+enum TimersCubitError {
+  load,
+  create,
+  update,
+  delete,
+}
+
+extension TimersCubitErrorLocalizations on TimersCubitError {
+  String tr(AppLocalizations l10n) {
+    switch (this) {
+      case TimersCubitError.load:
+        return l10n.timersLoadError;
+      case TimersCubitError.create:
+        return l10n.timerCreateError;
+      case TimersCubitError.update:
+        return l10n.timerUpdateError;
+      case TimersCubitError.delete:
+        return l10n.timerDeleteError;
+    }
+  }
+}
+
 class TimersCubitState extends Equatable {
   final List<Timer>? timers;
-  final Object? error;
+  final TimersCubitError? error;
 
   TimersCubitState({
     this.timers,
@@ -436,7 +556,7 @@ class TimersCubitState extends Equatable {
 
   TimersCubitState copyWith({
     List<Timer>? timers,
-    Object? error,
+    TimersCubitError? error,
   }) {
     return TimersCubitState(
       timers: timers ?? this.timers,
@@ -445,41 +565,27 @@ class TimersCubitState extends Equatable {
   }
 }
 
-class TimerLocalizations {
-  TimerLocalizations([this.l10n]);
-
-  factory TimerLocalizations.of(BuildContext context) {
-    return TimerLocalizations(AppLocalizations.of(context));
-  }
-
-  final AppLocalizations? l10n;
-
-  String get defaultName => 'timer';
-}
-
 class TimersCubit extends Cubit<TimersCubitState> {
-  TimersCubit(this.timerRepo, this.clock, this.l10n)
-      : super(TimersCubitState());
+  TimersCubit(this.timerRepo, this.clock) : super(TimersCubitState());
 
   // Future<List<Timer>>? _timers;
   final TimerRepo timerRepo;
   final Clock clock;
-  TimerLocalizations l10n;
   static final _log = Logger('TimersCubit');
 
-  void _handleError(Exception e, [StackTrace? st]) {
-    _log.error('', e, st);
-    emit(state.copyWith(error: e)); // set error, keep the previous timers
+  void _handleError(Exception e, TimersCubitError error) {
+    _log.error('', e);
+    emit(state.copyWith(error: error)); // set error, keep the previous timers
   }
 
   // void increment() => emit(state + 1);
   // void decrement() => emit(state - 1);
-  Future<void> init() async {
+  Future<void> load() async {
     try {
       var timers = await timerRepo.list();
       emit(TimersCubitState(timers: timers));
     } on Exception catch (e) {
-      _handleError(e);
+      _handleError(e, TimersCubitError.load);
     }
     // await Future.delayed(Duration(milliseconds: 500), null);
     // emit(TimersCubitState(timers: [
@@ -507,8 +613,6 @@ class TimersCubit extends Cubit<TimersCubitState> {
     // ]));
   }
 
-
-
   Future<void> create(Timer timer) async {
     _log.info('create');
     try {
@@ -520,7 +624,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
       final timers = await timerRepo.list();
       emit(TimersCubitState(timers: timers));
     } on Exception catch (e) {
-      _handleError(e);
+      _handleError(e, TimersCubitError.create);
     }
   }
 
@@ -549,7 +653,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
       final timers = await timerRepo.list();
       emit(TimersCubitState(timers: timers));
     } on Exception catch (e) {
-      _handleError(e);
+      _handleError(e, TimersCubitError.update);
     }
   }
 
@@ -559,7 +663,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
       final timers = await timerRepo.list();
       emit(TimersCubitState(timers: timers));
     } on Exception catch (e) {
-      _handleError(e);
+      _handleError(e, TimersCubitError.delete);
     }
   }
 
@@ -569,15 +673,37 @@ class TimersCubit extends Cubit<TimersCubitState> {
   // Future<void> resume(Timer timer) async {}
 }
 
+enum TimerCubitError {
+  update,
+}
+
+extension TimerCubitErrorLocalizations on TimerCubitError {
+  String tr(AppLocalizations l10n) {
+    switch (this) {
+      case TimerCubitError.update:
+        return l10n.timerUpdateError;
+    }
+  }
+}
 
 class TimerCubitState {
   final Timer timer;
-  final Object? error;
+  final TimerCubitError? error;
 
   TimerCubitState({
     required this.timer,
     this.error,
   });
+
+  TimerCubitState copyWith({
+    Timer? timer,
+    TimerCubitError? error,
+  }) {
+    return TimerCubitState(
+      timer: timer ?? this.timer,
+      error: error ?? this.error,
+    );
+  }
 }
 
 class TimerCubit extends Cubit<TimerCubitState> {
@@ -646,13 +772,8 @@ class TimerCubit extends Cubit<TimerCubitState> {
     await _tickerSub?.cancel();
     _tickerSub = ticker.tick(state.timer.duration).listen(_tick);
 
-    notificationService.cancel(state.timer.id);
-    notificationService.sendDelayed(
-      Notification(timer.id, timer.name, ''),
-      timer.countdown,
-    );
-
-    timerRepo.update(timer);
+    _sendNotification(timer);
+    _updateTimer(timer);
   }
 
   /// restart timer after app restart
@@ -667,13 +788,9 @@ class TimerCubit extends Cubit<TimerCubitState> {
     await _tickerSub?.cancel();
     _tickerSub = ticker.tick(state.timer.duration).listen(_tick);
 
-    notificationService.cancel(state.timer.id);
-    notificationService.sendDelayed(
-      Notification(timer.id, timer.name, ''),
-      timer.countdown,
-    );
+    _sendNotification(timer);
 
-    timerRepo.update(timer);
+    _updateTimer(timer);
   }
 
   Future<void> stop() async {
@@ -691,7 +808,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
 
     await _tickerSub?.cancel();
 
-    timerRepo.update(timer);
+    _updateTimer(timer);
   }
 
   Future<void> pause() async {
@@ -702,7 +819,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
 
     notificationService.cancel(timer.id);
 
-    timerRepo.update(timer);
+    _updateTimer(timer);
   }
 
   Future<void> resume() async {
@@ -712,13 +829,9 @@ class TimerCubit extends Cubit<TimerCubitState> {
 
     _tickerSub?.resume();
 
-    notificationService.cancel(state.timer.id);
-    notificationService.sendDelayed(
-      Notification(timer.id, timer.name, ''),
-      timer.countdown,
-    );
+    _sendNotification(timer);
 
-    timerRepo.update(timer);
+    _updateTimer(timer);
   }
 
   Future<void> _tick(Duration countdown) async {
@@ -731,7 +844,24 @@ class TimerCubit extends Cubit<TimerCubitState> {
     emit(TimerCubitState(timer: timer));
 
     if (countdown.inSeconds % saveInterval.inSeconds == 0) {
+      _updateTimer(timer);
+    }
+  }
+
+  Future<void> _sendNotification(Timer timer) async {
+    await notificationService.cancel(state.timer.id);
+    await notificationService.sendDelayed(
+      Notification(timer.id, timer.name, ''),
+      timer.countdown,
+    );
+  }
+
+  Future<void> _updateTimer(Timer timer) async {
+    try {
       timerRepo.update(timer);
+    } on Exception catch (e) {
+      _log.error(e);
+      state.copyWith(error: TimerCubitError.update);
     }
   }
 }
@@ -799,6 +929,13 @@ class HomeView extends StatelessWidget {
   }
 }
 
+void showErrorSnackBar(BuildContext context, String error) {
+  WidgetsBinding.instance?.addPostFrameCallback((_) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+  });
+}
+
 class TimerList extends StatelessWidget {
   TimerList({
     Key? key,
@@ -809,7 +946,11 @@ class TimerList extends StatelessWidget {
     final cubit = context.watch<TimersCubit>();
 
     if (cubit.state.error != null) {
-      return Text(cubit.state.error.toString());
+      // return Text(cubit.state.error!.tr(AppLocalizations.of(context)!));
+      showErrorSnackBar(
+        context,
+        cubit.state.error!.tr(AppLocalizations.of(context)!),
+      );
     }
     if (cubit.state.timers == null) {
       return Center(child: CircularProgressIndicator());
@@ -1020,7 +1161,10 @@ class TimerListItem extends StatelessWidget {
     final cubit = context.watch<TimerCubit>();
 
     if (cubit.state.error != null) {
-      return Text(cubit.state.error.toString());
+      showErrorSnackBar(
+        context,
+        cubit.state.error!.tr(AppLocalizations.of(context)!),
+      );
     }
 
     final timer = cubit.state.timer;

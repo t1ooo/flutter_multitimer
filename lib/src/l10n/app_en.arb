@@ -1,4 +1,9 @@
 {
+  "timersLoadError": "Error: failed to load timers",
+  "timerCreateError": "Error: failed to create timer",
+  "timerUpdateError": "Error: failed to update timer",
+  "timerDeleteError": "Error: failed to delete timer",
+  
   "appTitle": "flutter_pomodoro_prototype_skeleton_bloc",
   "@appTitle": {
     "description": "The title of the application"
