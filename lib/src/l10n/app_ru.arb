@@ -10,5 +10,8 @@
   "settingsTitle": "Настройки",
   "languageLabel": "Язык",
 
+  "notificationBody": "Таймер завершен",
+  "stopSignalButton": "ОСТАНОВИТЬ СИГНАЛ",
+
   "appTitle": "flutter_pomodoro_prototype_skeleton_bloc"
 }

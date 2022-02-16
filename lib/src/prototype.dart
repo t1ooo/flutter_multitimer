@@ -133,7 +133,8 @@ class NotificationLocalizations {
 
   final AppLocalizations? l10n;
 
-  String get stopSignalButton => 'STOP SIGNAL';
+  String get notificationBody => l10n?.notificationBody ?? '';
+  String get stopSignalButton => l10n?.stopSignalButton ?? 'STOP SIGNAL';
 
   // String get notificationBody => null;
 }
@@ -827,8 +828,10 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   Future<void> resume() async {
-    final timer =
-        state.timer.copyWith(status: TimerStatus.start, startedAt: clock.now());
+    final timer = state.timer.copyWith(
+      status: TimerStatus.start,
+      startedAt: clock.now(),
+    );
     emit(TimerCubitState(timer: timer));
 
     _tickerSub?.resume();

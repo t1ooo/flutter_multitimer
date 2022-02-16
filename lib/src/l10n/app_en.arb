@@ -8,7 +8,10 @@
   "updateLocaleError": "Error: failed to update locale",
 
   "settingsTitle": "Settings",
-  "languageLabel": "Язык",
+  "languageLabel": "Language",
+
+  "notificationBody": "Time's up",
+  "stopSignalButton": "STOP SIGNAL",
 
   "appTitle": "flutter_pomodoro_prototype_skeleton_bloc"
 }

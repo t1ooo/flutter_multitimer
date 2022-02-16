@@ -10,6 +10,9 @@
   "settingsTitle": "",
   "languageLabel": "",
 
+  "notificationBody": "",
+  "stopSignalButton": "",
+
   "appTitle": "",
   "@appTitle": {
     "description": "The title of the application"
