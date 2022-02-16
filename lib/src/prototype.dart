@@ -482,13 +482,13 @@ class Timer extends Equatable {
   //       status = TimerStatus.stop;
 
   Duration calculateCountdown(DateTime now) {
-    if (status == TimerStatus.start || status == TimerStatus.pause) {
+    if (status == TimerStatus.start /* || status == TimerStatus.pause */) {
       final stopAt = startedAt.add(rest);
       final countdown = stopAt.difference(now);
       print('$rest, $countdown');
       return countdown;
     }
-    return duration;
+    return rest;
   }
 
   Timer copyWith({
