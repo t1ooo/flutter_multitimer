@@ -57,6 +57,14 @@ class Timer extends Equatable {
     return copyWith(
       status: TimerStatus.start,
       startedAt: now,
+      rest: duration,
+    );
+  }
+
+  Timer resume(DateTime now) {
+    return copyWith(
+      status: TimerStatus.start,
+      startedAt: now,
       rest: countdown(now),
     );
   }

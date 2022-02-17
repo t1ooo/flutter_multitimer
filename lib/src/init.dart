@@ -49,6 +49,7 @@ Future<TimerRepo> timerRepo(bool isFirstRun) async {
   // final timerRepo = InMemoryTimerRepo();
   final timerRepo = SharedPrefsTimerRepo();
   if (isFirstRun) {
+    _initLog.info('populate timer repo');
     for (final timer in initialTimers()) {
       await timerRepo.create(timer);
     }

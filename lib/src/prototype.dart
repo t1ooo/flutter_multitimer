@@ -67,17 +67,18 @@ class FirstRun {
 
   static Future<FirstRun> init() async {
     final prefs = await SharedPreferences.getInstance();
+    
     if (prefs.containsKey(_key)) {
       return FirstRun._(false);
     }
 
-    prefs.setBool(_key, true);
+    await prefs.setBool(_key, true);
     return FirstRun._(true);
   }
 
   Future<void> reset() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.remove(_key);
+    await prefs.remove(_key);
     _isFirstRun = true;
   }
 }
@@ -476,7 +477,7 @@ class SharedPrefsTimerRepo implements TimerRepo {
         //  print(key);
         return Timer.fromJson(jsonDecode(sharedPrefs.getString(key)!));
       },
-    ).toList();
+    ).toList()..sort((a, b) => a.id - b.id);
   }
 
   // @override
@@ -780,7 +781,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
       // } else {
       //   _restart(countdown);
       // }
-      start();
+      resumeStarted();
      
      
       // if (clock
@@ -815,6 +816,22 @@ class TimerCubit extends Cubit<TimerCubitState> {
     _tickerSub = ticker.tick(state.timer.duration).listen(_tick);
 
     _sendNotification(timer);
+    _updateTimer(timer);
+  }
+
+  Future<void> resumeStarted() async {
+    // final timer = state.timer.copyWith(
+    //   status: TimerStatus.start,
+    //   startedAt: clock.now(),
+    // );
+    final timer = state.timer.resume(clock.now());
+    emit(TimerCubitState(timer: timer));
+
+    await _tickerSub?.cancel();
+    _tickerSub = ticker.tick(state.timer.duration).listen(_tick);
+
+    // no need to send a notification because we already sent a delayed notification when we started the timer
+    
     _updateTimer(timer);
   }
 
@@ -876,7 +893,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
     // status: TimerStatus.start,
     // startedAt: clock.now(),
     // );
-    final timer = state.timer.start(clock.now());
+    final timer = state.timer.resume(clock.now());
     emit(TimerCubitState(timer: timer));
 
     _tickerSub?.resume();
@@ -887,7 +904,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   Future<void> _tick(Duration countdown) async {
-    if (countdown.inSeconds <= 0) {
+    if (state.timer.countdown(clock.now()) <= Duration.zero) {
       _done();
       return;
     }
