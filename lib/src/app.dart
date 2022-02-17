@@ -1,12 +1,10 @@
-import 'dart:io';
-
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_pomodoro_prototype_skeleton_bloc/src/prototype.dart';
 
 import 'l10n/gen/app_localizations.dart';
+import 'prototype.dart';
 import 'sample_feature/sample_item_details_view.dart';
 import 'sample_feature/sample_item_list_view.dart';
 import 'settings_repository.dart';
@@ -45,7 +43,7 @@ class MyApp extends StatelessWidget {
     return BlocBuilder<SettingsCubit, SettingsCubitState>(
       // animation: settingsController,
       builder: (BuildContext context, SettingsCubitState state) {
-        print('rebuild material app: ${state.settings?.locale}');
+        // print('rebuild material app: ${state.settings?.locale}');
         return MaterialApp(
           restorationScopeId: 'app',
           localizationsDelegates: const [

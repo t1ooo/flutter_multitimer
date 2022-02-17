@@ -10,10 +10,8 @@ abstract class SettingsRepo {
   Future<void> update(Settings alarm);
 }
 
-class InmemorySettingsRepo implements SettingsRepo {
+class InMemorySettingsRepo implements SettingsRepo {
   Settings? _settings;
-
-  InmemorySettingsRepo();
 
   @override
   Future<Settings?> get() async {
@@ -46,7 +44,7 @@ class SharedPrefsSettingsRepo implements SettingsRepo {
     if (data == null) {
       return null;
     }
-    return Settings.fromJson(jsonDecode(data));
+    return Settings.fromJson(jsonDecode(data) as Map<String, dynamic>);
   }
 
   // @override

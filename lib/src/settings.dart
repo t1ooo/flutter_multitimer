@@ -9,11 +9,11 @@ part 'settings.g.dart';
 @JsonSerializable()
 @LocaleJsonConverter()
 class Settings extends Equatable {
-  final Locale locale;
-
-  Settings({
+  const Settings({
     required this.locale,
   });
+
+  final Locale locale;
 
   Settings copyWith({
     Locale? locale,
@@ -23,6 +23,7 @@ class Settings extends Equatable {
     );
   }
 
+  // ignore: sort_constructors_first
   factory Settings.fromJson(Map<String, dynamic> json) =>
       _$SettingsFromJson(json);
 
@@ -37,7 +38,7 @@ class LocaleJsonConverter implements JsonConverter<Locale, String> {
 
   @override
   Locale fromJson(String json) {
-    return _fromMap(jsonDecode(json));
+    return _fromMap(jsonDecode(json) as Map<String, dynamic>);
   }
 
   @override
@@ -46,7 +47,7 @@ class LocaleJsonConverter implements JsonConverter<Locale, String> {
   }
 
   Locale _fromMap(Map<String, dynamic> json) =>
-      Locale(json['languageCode'] as String, json['countryCode']);
+      Locale(json['languageCode'] as String, json['countryCode'] as String?);
 
   Map<String, dynamic> _toMap(Locale object) => {
         'languageCode': object.languageCode,

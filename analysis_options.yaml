@@ -7,7 +7,18 @@
 
 # The following line activates a set of recommended lints for Flutter apps,
 # packages, and plugins designed to encourage good coding practices.
-include: package:flutter_lints/flutter.yaml
+# include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-raw-types: true
+  strong-mode:
+    implicit-casts: false
+  exclude:
+    - "build/**"
+    - "packages/**"
+    - "lib/src/**.g.dart"
+    - "lib/src/l10n/**"
 
 linter:
   # The lint rules applied to this project can be customized in the
@@ -24,9 +35,9 @@ linter:
   rules:
     - always_declare_return_types
     - always_put_control_body_on_new_line
-    - always_put_required_named_parameters_first
+    # - always_put_required_named_parameters_first
     - always_require_non_null_named_parameters
-    - always_specify_types
+    # - always_specify_types # adds verbosity
     # - always_use_package_imports
     - annotate_overrides
     - avoid_annotating_with_dynamic
@@ -64,7 +75,7 @@ linter:
     - avoid_slow_async_io
     - avoid_type_to_string
     - avoid_types_as_parameter_names
-    - avoid_types_on_closure_parameters
+    # - avoid_types_on_closure_parameters
     - avoid_unnecessary_containers
     - avoid_unused_constructor_parameters
     - avoid_void_async
@@ -82,7 +93,7 @@ linter:
     - curly_braces_in_flow_control_structures
     - depend_on_referenced_packages
     - deprecated_consistency
-    - diagnostic_describe_all_properties
+    # - diagnostic_describe_all_properties
     - directives_ordering
     - do_not_use_environment
     - empty_catches
@@ -96,12 +107,12 @@ linter:
     - implementation_imports
     - invariant_booleans
     - iterable_contains_unrelated_type
-    - join_return_with_assignment
+    # - join_return_with_assignment
     - leading_newlines_in_multiline_strings
     - library_names
     - library_prefixes
     - library_private_types_in_public_api
-    - lines_longer_than_80_chars
+    # - lines_longer_than_80_chars
     - list_remove_unrelated_type
     - literal_only_boolean_expressions
     - missing_whitespace_between_adjacent_strings
@@ -127,7 +138,7 @@ linter:
     # - prefer_bool_in_asserts # deprecated
     - prefer_collection_literals
     - prefer_conditional_assignment
-    - prefer_const_constructors
+    # - prefer_const_constructors # adds verbosity
     - prefer_const_constructors_in_immutables
     - prefer_const_declarations
     - prefer_const_literals_to_create_immutables
@@ -135,11 +146,11 @@ linter:
     - prefer_contains
     # - prefer_double_quotes # incompatible with prefer_single_quotes
     - prefer_equal_for_default_values
-    - prefer_expression_function_bodies
+    # - prefer_expression_function_bodies
     - prefer_final_fields
     - prefer_final_in_for_each
     - prefer_final_locals
-    - prefer_final_parameters
+    # - prefer_final_parameters # adds verbosity
     - prefer_for_elements_to_map_fromIterable
     - prefer_foreach
     - prefer_function_declarations_over_variables
@@ -186,7 +197,7 @@ linter:
     - unnecessary_constructor_name
     # - unnecessary_final # incompatible with'prefer_final_locals'
     - unnecessary_getters_setters
-    - unnecessary_lambdas
+    # - unnecessary_lambdas
     - unnecessary_new
     - unnecessary_null_aware_assignments
     - unnecessary_null_checks
@@ -211,7 +222,7 @@ linter:
     - use_named_constants
     - use_raw_strings
     - use_rethrow_when_possible
-    - use_setters_to_change_properties
+    # - use_setters_to_change_properties
     - use_string_buffers
     - use_test_throws_matchers
     - use_to_and_as_if_applicable

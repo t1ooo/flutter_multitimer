@@ -13,14 +13,6 @@ enum TimerStatus {
 
 @JsonSerializable()
 class Timer extends Equatable {
-  final int id;
-  final String name;
-  final Duration duration;
-  final Duration rest; // rest of duration
-  final TimerStatus status;
-  final DateTime lastUpdate;
-  final DateTime startedAt;
-
   Timer({
     required this.id,
     required this.name,
@@ -60,6 +52,14 @@ class Timer extends Equatable {
       rest: duration,
     );
   }
+
+  final int id;
+  final String name;
+  final Duration duration;
+  final Duration rest; // rest of duration
+  final TimerStatus status;
+  final DateTime lastUpdate;
+  final DateTime startedAt;
 
   Timer resume(DateTime now) {
     return copyWith(

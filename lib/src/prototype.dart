@@ -1,4 +1,3 @@
-// TODO: enable all analysis_options.yaml
 // TODO: Navigator.pushNamed
 // TODO: nullable Settings.locale, add init to Repo
 // TODO: remove countdown field, calculate countdown
@@ -6,12 +5,10 @@
 
 import 'dart:async' as async;
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:clock/clock.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -58,16 +55,16 @@ import 'utils/chaos_uitls.dart';
 // }
 
 class FirstRun {
+  FirstRun._(this._isFirstRun);
+
   static const _key = '_is_first_run';
   bool _isFirstRun;
-
-  FirstRun._(this._isFirstRun);
 
   bool get isFirstRun => _isFirstRun;
 
   static Future<FirstRun> init() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     if (prefs.containsKey(_key)) {
       return FirstRun._(false);
     }
@@ -90,10 +87,11 @@ extension LoggerExt on Logger {
 }
 
 class Notification extends Equatable {
+  const Notification(this.id, this.title, this.body);
+
   final int id;
   final String title;
   final String body;
-  Notification(this.id, this.title, this.body);
 
   @override
   List<Object?> get props => [id, title, body];
@@ -166,10 +164,10 @@ class NotificationLocalizations {
 }
 
 class NotificationAction {
+  NotificationAction(this.key, this.label);
+
   final String key;
   final String label;
-
-  NotificationAction(this.key, this.label);
 }
 
 class AwesomeNotificationService implements NotificationService {
@@ -227,7 +225,6 @@ class AwesomeNotificationService implements NotificationService {
     }
     await AwesomeNotifications().setChannel(
       notificationChannel,
-      forceUpdate: false,
     );
     return AwesomeNotificationService._(
       key: key,
@@ -276,7 +273,6 @@ class AwesomeNotificationService implements NotificationService {
         interval: delay.inSeconds,
         timeZone: localTimeZone,
         preciseAlarm: true,
-        repeats: false,
         // timezone: utcTimeZone,
       ),
       // actionButtons: [_notificationActionButton('stop', l10n.stopSignalButton)],
@@ -392,11 +388,13 @@ class InMemoryTimerRepo implements TimerRepo {
   static final _log = Logger('InMemoryTimerRepo');
   final _timers = <int, Timer>{};
 
+  @override
   Future<List<Timer>> list() async {
     await _delay();
     return _timers.values.toList();
   }
 
+  @override
   Future<Timer> create(Timer timer) async {
     // if (_timers.containsKey(timer.id)) {
     //   throw Exception('already exists');
@@ -409,6 +407,7 @@ class InMemoryTimerRepo implements TimerRepo {
     return timerWithId;
   }
 
+  @override
   Future<void> update(Timer timer) async {
     _log.info('update: $timer');
     if (!_timers.containsKey(timer.id)) {
@@ -418,6 +417,7 @@ class InMemoryTimerRepo implements TimerRepo {
     _timers[timer.id] = timer;
   }
 
+  @override
   Future<void> delete(Timer timer) async {
     _log.info('delete: $timer');
     _timers.remove(timer.id);
@@ -475,9 +475,12 @@ class SharedPrefsTimerRepo implements TimerRepo {
     }).map(
       (key) {
         //  print(key);
-        return Timer.fromJson(jsonDecode(sharedPrefs.getString(key)!));
+        return Timer.fromJson(
+          jsonDecode(sharedPrefs.getString(key)!) as Map<String, dynamic>,
+        );
       },
-    ).toList()..sort((a, b) => a.id - b.id);
+    ).toList()
+      ..sort((a, b) => a.id - b.id);
   }
 
   // @override
@@ -568,13 +571,13 @@ extension TimersCubitErrorLocalizations on TimersCubitError {
 }
 
 class TimersCubitState extends Equatable {
-  final List<Timer>? timers;
-  final TimersCubitError? error;
-
-  TimersCubitState({
+  const TimersCubitState({
     this.timers,
     this.error,
   });
+
+  final List<Timer>? timers;
+  final TimersCubitError? error;
 
   @override
   List<Object?> get props => [timers, error];
@@ -602,7 +605,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
   // void decrement() => emit(state - 1);
   Future<void> load() async {
     try {
-      var timers = await timerRepo.list();
+      final timers = await timerRepo.list();
       await _emitState(TimersCubitState(timers: timers));
     } on Exception catch (e) {
       _handleError(e, TimersCubitError.load);
@@ -659,11 +662,13 @@ class TimersCubit extends Cubit<TimersCubitState> {
       //    2. recreate timer with new id and use Timer.id as key in BlocProvider
       //      cons: we need to sort timers because recreated timer will move to the end of the list
 
-      await timerRepo.update(timer.copyWith(
-        rest: timer.duration,
-        lastUpdate: clock.now(),
-        status: TimerStatus.stop,
-      ));
+      await timerRepo.update(
+        timer.copyWith(
+          rest: timer.duration,
+          lastUpdate: clock.now(),
+          status: TimerStatus.stop,
+        ),
+      );
       // await timerRepo.update(timer.stop());
 
       // await timerRepo.delete(timer);
@@ -721,13 +726,13 @@ extension TimerCubitErrorLocalizations on TimerCubitError {
 }
 
 class TimerCubitState {
-  final Timer timer;
-  final TimerCubitError? error;
-
   TimerCubitState({
     required this.timer,
     this.error,
   });
+
+  final Timer timer;
+  final TimerCubitError? error;
 
   TimerCubitState copyWith({
     Timer? timer,
@@ -751,7 +756,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
     this.ticker = const Ticker(),
   ]) : super(TimerCubitState(timer: timer)) {
     // if (saveInterval < const Duration(seconds: 1)) {
-      // throw Exception('saveInterval should be >= than 1 second');
+    // throw Exception('saveInterval should be >= than 1 second');
     // }
     _init();
   }
@@ -772,8 +777,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
     if (state.timer.status == TimerStatus.start) {
       // final stopAt = state.timer.startedAt.add(state.timer.countdown);
       // final countdown = stopAt.difference(clock.now()) + Duration(seconds: 2);
-      
-      
+
       // final countdown = state.timer.countdown(clock.now());
       // if (countdown <= Duration.zero) {
       //   _log.info('timer ended when the app was not running: ${state.timer}');
@@ -782,8 +786,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
       //   _restart(countdown);
       // }
       resumeStarted();
-     
-     
+
       // if (clock
       //     .now()
       //     .isAfter(state.timer.startedAt.add(state.timer.countdown))) {
@@ -815,8 +818,8 @@ class TimerCubit extends Cubit<TimerCubitState> {
     await _tickerSub?.cancel();
     _tickerSub = ticker.tick(state.timer.duration).listen(_tick);
 
-    _sendNotification(timer);
-    _updateTimer(timer);
+    async.unawaited(_sendNotification(timer));
+    async.unawaited(_updateTimer(timer));
   }
 
   Future<void> resumeStarted() async {
@@ -831,8 +834,8 @@ class TimerCubit extends Cubit<TimerCubitState> {
     _tickerSub = ticker.tick(state.timer.duration).listen(_tick);
 
     // no need to send a notification because we already sent a delayed notification when we started the timer
-    
-    _updateTimer(timer);
+
+    async.unawaited(_updateTimer(timer));
   }
 
   /// restart timer after app restart
@@ -854,9 +857,8 @@ class TimerCubit extends Cubit<TimerCubitState> {
   // }
 
   Future<void> stop() async {
-    _done();
-
-    notificationService.cancel(state.timer.id);
+    async.unawaited(_done());
+    async.unawaited(notificationService.cancel(state.timer.id));
   }
 
   Future<void> _done() async {
@@ -870,7 +872,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
 
     await _tickerSub?.cancel();
 
-    _updateTimer(timer);
+    async.unawaited(_updateTimer(timer));
   }
 
   Future<void> pause() async {
@@ -883,9 +885,9 @@ class TimerCubit extends Cubit<TimerCubitState> {
 
     _tickerSub?.pause();
 
-    notificationService.cancel(timer.id);
+    async.unawaited(notificationService.cancel(timer.id));
 
-    _updateTimer(timer);
+    async.unawaited(_updateTimer(timer));
   }
 
   Future<void> resume() async {
@@ -898,14 +900,14 @@ class TimerCubit extends Cubit<TimerCubitState> {
 
     _tickerSub?.resume();
 
-    _sendNotification(timer);
+    async.unawaited(_sendNotification(timer));
 
-    _updateTimer(timer);
+    async.unawaited(_updateTimer(timer));
   }
 
   Future<void> _tick(Duration countdown) async {
     if (state.timer.countdown(clock.now()) <= Duration.zero) {
-      _done();
+      async.unawaited(_done());
       return;
     }
 
@@ -932,7 +934,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
     try {
       randomException();
       await asyncRandomDelay();
-      timerRepo.update(timer);
+      await timerRepo.update(timer);
     } on Exception catch (e) {
       _handleError(e, TimerCubitError.update);
     }
@@ -987,7 +989,7 @@ String formatCountdown(Duration countdown) {
 }
 
 class HomeView extends StatelessWidget {
-  HomeView({
+  const HomeView({
     Key? key,
   }) : super(key: key);
 
@@ -1016,8 +1018,8 @@ class HomeView extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (_) =>
-                    TimerEditView(timer: draftTimer(), isNew: true)),
+              builder: (_) => TimerEditView(timer: draftTimer(), isNew: true),
+            ),
           );
         },
         child: Icon(Icons.add),
@@ -1034,7 +1036,7 @@ void showErrorSnackBar(BuildContext context, String error) {
 }
 
 class TimerList extends StatelessWidget {
-  TimerList({
+  const TimerList({
     Key? key,
   }) : super(key: key);
 
@@ -1269,7 +1271,7 @@ class TimerList extends StatelessWidget {
 // }
 
 class TimerListItem extends StatelessWidget {
-  TimerListItem({
+  const TimerListItem({
     Key? key,
   }) : super(key: key);
 
@@ -1334,45 +1336,46 @@ class TimerListItem extends StatelessWidget {
                 ),
                 // Switch(value: alarm.isActive, onChanged: (_) => onToggle()),
                 ButtonBar(
-                    // alignment: MainAxisAlignment.end,
-                    children: [
-                      if (timer.status == TimerStatus.stop) ...[
-                        ElevatedButton(
-                          child: Icon(Icons.play_arrow, size: iconSize),
-                          onPressed: () {
-                            cubit.start();
-                          },
-                        )
-                      ] else if (timer.status == TimerStatus.pause) ...[
-                        ElevatedButton(
-                          child: Icon(Icons.stop, size: iconSize),
-                          onPressed: () {
-                            cubit.stop();
-                          },
-                        ),
-                        SizedBox(width: 10),
-                        ElevatedButton(
-                          child: Icon(Icons.play_arrow, size: iconSize),
-                          onPressed: () {
-                            cubit.start();
-                          },
-                        ),
-                      ] else ...[
-                        ElevatedButton(
-                          child: Icon(Icons.stop, size: iconSize),
-                          onPressed: () {
-                            cubit.stop();
-                          },
-                        ),
-                        SizedBox(width: 10),
-                        ElevatedButton(
-                          child: Icon(Icons.pause, size: iconSize),
-                          onPressed: () {
-                            cubit.pause();
-                          },
-                        ),
-                      ],
-                    ]),
+                  // alignment: MainAxisAlignment.end,
+                  children: [
+                    if (timer.status == TimerStatus.stop) ...[
+                      ElevatedButton(
+                        child: Icon(Icons.play_arrow, size: iconSize),
+                        onPressed: () {
+                          cubit.start();
+                        },
+                      )
+                    ] else if (timer.status == TimerStatus.pause) ...[
+                      ElevatedButton(
+                        child: Icon(Icons.stop, size: iconSize),
+                        onPressed: () {
+                          cubit.stop();
+                        },
+                      ),
+                      SizedBox(width: 10),
+                      ElevatedButton(
+                        child: Icon(Icons.play_arrow, size: iconSize),
+                        onPressed: () {
+                          cubit.start();
+                        },
+                      ),
+                    ] else ...[
+                      ElevatedButton(
+                        child: Icon(Icons.stop, size: iconSize),
+                        onPressed: () {
+                          cubit.stop();
+                        },
+                      ),
+                      SizedBox(width: 10),
+                      ElevatedButton(
+                        child: Icon(Icons.pause, size: iconSize),
+                        onPressed: () {
+                          cubit.pause();
+                        },
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
             SizedBox(height: 10),
@@ -1391,7 +1394,7 @@ class TimerListItem extends StatelessWidget {
 }
 
 class TimerListItemV2 extends StatelessWidget {
-  TimerListItemV2({
+  const TimerListItemV2({
     Key? key,
     required this.timer,
   }) : super(key: key);
@@ -1485,45 +1488,46 @@ class TimerListItemV2 extends StatelessWidget {
                 ),
                 // Switch(value: alarm.isActive, onChanged: (_) => onToggle()),
                 ButtonBar(
-                    // alignment: MainAxisAlignment.end,
-                    children: [
-                      if (timer.status == TimerStatus.stop) ...[
-                        ElevatedButton(
-                          child: Icon(Icons.play_arrow, size: iconSize),
-                          onPressed: () {
-                            cubit.start();
-                          },
-                        )
-                      ] else if (timer.status == TimerStatus.pause) ...[
-                        ElevatedButton(
-                          child: Icon(Icons.stop, size: iconSize),
-                          onPressed: () {
-                            cubit.stop();
-                          },
-                        ),
-                        SizedBox(width: 10),
-                        ElevatedButton(
-                          child: Icon(Icons.play_arrow, size: iconSize),
-                          onPressed: () {
-                            cubit.start();
-                          },
-                        ),
-                      ] else ...[
-                        ElevatedButton(
-                          child: Icon(Icons.stop, size: iconSize),
-                          onPressed: () {
-                            cubit.stop();
-                          },
-                        ),
-                        SizedBox(width: 10),
-                        ElevatedButton(
-                          child: Icon(Icons.pause, size: iconSize),
-                          onPressed: () {
-                            cubit.pause();
-                          },
-                        ),
-                      ],
-                    ]),
+                  // alignment: MainAxisAlignment.end,
+                  children: [
+                    if (timer.status == TimerStatus.stop) ...[
+                      ElevatedButton(
+                        child: Icon(Icons.play_arrow, size: iconSize),
+                        onPressed: () {
+                          cubit.start();
+                        },
+                      )
+                    ] else if (timer.status == TimerStatus.pause) ...[
+                      ElevatedButton(
+                        child: Icon(Icons.stop, size: iconSize),
+                        onPressed: () {
+                          cubit.stop();
+                        },
+                      ),
+                      SizedBox(width: 10),
+                      ElevatedButton(
+                        child: Icon(Icons.play_arrow, size: iconSize),
+                        onPressed: () {
+                          cubit.start();
+                        },
+                      ),
+                    ] else ...[
+                      ElevatedButton(
+                        child: Icon(Icons.stop, size: iconSize),
+                        onPressed: () {
+                          cubit.stop();
+                        },
+                      ),
+                      SizedBox(width: 10),
+                      ElevatedButton(
+                        child: Icon(Icons.pause, size: iconSize),
+                        onPressed: () {
+                          cubit.pause();
+                        },
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
             SizedBox(height: 10),
@@ -1542,7 +1546,7 @@ class TimerListItemV2 extends StatelessWidget {
 }
 
 class TimerEditView extends StatelessWidget {
-  TimerEditView({Key? key, required this.timer, this.isNew = false})
+  const TimerEditView({Key? key, required this.timer, this.isNew = false})
       : super(key: key);
 
   final bool isNew;
@@ -1560,7 +1564,7 @@ class TimerEditView extends StatelessWidget {
 }
 
 class TimerEdit extends StatelessWidget {
-  TimerEdit({Key? key, required this.timer, this.isNew = false})
+  const TimerEdit({Key? key, required this.timer, this.isNew = false})
       : super(key: key);
 
   static final hourController = TextEditingController();
@@ -1853,13 +1857,13 @@ extension SettingsCubitErrorLocalizations on SettingsCubitError {
 }
 
 class SettingsCubitState extends Equatable {
-  final Settings? settings;
-  final SettingsCubitError? error;
-
-  SettingsCubitState({
+  const SettingsCubitState({
     this.settings,
     this.error,
   });
+
+  final Settings? settings;
+  final SettingsCubitError? error;
 
   @override
   List<Object?> get props => [settings, error];
@@ -1915,9 +1919,9 @@ class SettingsCubit extends Cubit<SettingsCubitState> {
 }
 
 class SettingsView extends StatelessWidget {
-  static const String routeName = '/settings';
+  const SettingsView({Key? key}) : super(key: key);
 
-  SettingsView({Key? key}) : super(key: key);
+  static const String routeName = '/settings';
 
   @override
   Widget build(BuildContext context) {
@@ -1937,7 +1941,7 @@ class SettingsForm extends StatelessWidget {
   // final navigationService = locator<NavigationService>();
   // static final _localeController = EditingController<Locale>(Locale('_'));
 
-  SettingsForm({Key? key}) : super(key: key);
+  const SettingsForm({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

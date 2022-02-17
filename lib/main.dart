@@ -1,6 +1,6 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:clock/clock.dart';
 
 import 'src/app.dart';
 import 'src/init.dart';
@@ -8,7 +8,7 @@ import 'src/prototype.dart';
 import 'src/settings/settings_controller.dart';
 import 'src/settings/settings_service.dart';
 
-void main() async {
+Future<void> main() async {
   configureLogger();
 
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,7 +31,7 @@ void main() async {
   //     : TimerNotificationService();
 
   final firstRun = await FirstRun.init();
-  firstRun.reset();
+  await firstRun.reset();
 
   runApp(
     /// Providers are above [MyApp] instead of inside it, so that tests

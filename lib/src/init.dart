@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter_pomodoro_prototype_skeleton_bloc/src/prototype.dart';
 import 'package:logging/logging.dart';
 
-import 'timer.dart';
+import 'prototype.dart';
 import 'settings_repository.dart';
+import 'timer.dart';
 
 final _initLog = Logger('init');
 StreamSubscription<LogRecord>? _loggerSub;
@@ -34,7 +34,7 @@ void configureLogger() {
 
 Future<NotificationService> notificationService() async {
   if (Platform.isAndroid) {
-    return await AwesomeNotificationService.init(
+    return AwesomeNotificationService.init(
       key: 'mutlitimer key',
       name: 'mutlitimer name',
       description: 'mutlitimer desc',
@@ -45,6 +45,7 @@ Future<NotificationService> notificationService() async {
   return TimerNotificationService();
 }
 
+// ignore: avoid_positional_boolean_parameters
 Future<TimerRepo> timerRepo(bool isFirstRun) async {
   // final timerRepo = InMemoryTimerRepo();
   final timerRepo = SharedPrefsTimerRepo();
@@ -57,8 +58,9 @@ Future<TimerRepo> timerRepo(bool isFirstRun) async {
   return timerRepo;
 }
 
+// ignore: avoid_positional_boolean_parameters
 Future<SettingsRepo> settingsRepo(bool isFirstRun) async {
-  final settingsRepo = InmemorySettingsRepo();
+  final settingsRepo = InMemorySettingsRepo();
   // if (isFirstRun) {
   // for (final timer in initialTimers()) {
   // await timerRepo.create(timer);
