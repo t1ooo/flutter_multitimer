@@ -16,7 +16,7 @@ import 'l10n/gen/app_localizations.dart';
 import 'settings.dart';
 import 'settings_repository.dart';
 import 'timer.dart';
-import 'ui_utils.dart';
+import 'utils/ui_utils.dart';
 import 'utils/chaos_uitls.dart';
 
 Future<void> clearSharedPreferences() async {
