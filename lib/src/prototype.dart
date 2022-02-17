@@ -914,7 +914,10 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   Future<void> _tick(Duration countdown) async {
-    if (state.timer.countdown(clock.now()) <= Duration.zero) {
+    if (state.timer.countdown(clock.now()) < Duration.zero) {
+      final timer = state.timer.copyWith();
+      emit(TimerCubitState(timer: timer));
+      await async.Future.delayed(Duration(seconds:1));
       async.unawaited(_done());
       return;
     }
@@ -933,7 +936,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
     // TODO: MAYBE: add method NotificationService.sendAt(Notification, DataTime)
     await notificationService.sendDelayed(
       Notification(timer.id, timer.name, l10n.notificationBody),
-      timer.countdown(clock.now()),
+      timer.countdown(clock.now()) + Duration(seconds: 1),
       [NotificationAction('stop', l10n.stopSignalButton)],
     );
   }
@@ -992,8 +995,18 @@ DateTime dateTimeFromDuration(Duration duration) {
   );
 }
 
+// String formatCountdown(Duration countdown) {
+//   return dateFormat.format(dateTimeFromDuration(countdown));
+// }
+
 String formatCountdown(Duration countdown) {
-  return dateFormat.format(dateTimeFromDuration(countdown));
+  final inSeconds = (countdown.inMicroseconds / Duration.microsecondsPerSecond).round();
+  final dTimer = dateTime(
+    hour: inSeconds ~/ (60 * 60 * 24),
+    minute: inSeconds ~/ 60,
+    second: inSeconds % 60,
+  );
+  return dateFormat.format(dTimer);
 }
 
 class HomeView extends StatelessWidget {
@@ -1021,6 +1034,7 @@ class HomeView extends StatelessWidget {
       // child: TimerList(),
       // ),
       body: TimerList(),
+
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -1302,100 +1316,115 @@ class TimerListItem extends StatelessWidget {
 
     const iconSize = 40.0;
     // timer.countdown.inSeconds
-    final fmtCountdown = formatCountdown(timer.countdown(clock.now()));
+    final countdown = timer.countdown(clock.now());
+    final fmtCountdown = formatCountdown(countdown);
+    final progress = 
+        // ((countdown + Duration(seconds: 1)).inMicroseconds /
+        //     timer.duration.inMicroseconds);
+        1 - (countdown.inMicroseconds / timer.duration.inMicroseconds);
+        // countdown.inMicroseconds / timer.duration.inMicroseconds;
+    // if (progress > 0) {
+      // progress += 0.1;
+    // }
+    // print(progress);
 
-    return InkWell(
-      child: Padding(
-        // padding: pagePadding,
-        padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 10),
-        child: Column(
-          // mainAxisAlignment: MainAxisAlignment.center,
-          // crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Text('name'),
-            // SizedBox(height: 5),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Row(
-                //   crossAxisAlignment: CrossAxisAlignment.baseline,
-                //   textBaseline: TextBaseline.ideographic,
-                //   children: [
-                //     Text(
-                //       '00:24:00',
-                //       style: TextStyle(fontSize: 25),
-                //     ),
-                //     // SizedBox(width: 10),
-                //     // Text(timer.name),
-                //   ],
+    return GestureDetector(
+      child: Card(
+        child: Padding(
+          // padding: pagePadding,
+          padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 20),
+          child: Column(
+            // mainAxisAlignment: MainAxisAlignment.center,
+            // crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Text('name'),
+              // SizedBox(height: 5),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Row(
+                  //   crossAxisAlignment: CrossAxisAlignment.baseline,
+                  //   textBaseline: TextBaseline.ideographic,
+                  //   children: [
+                  //     Text(
+                  //       '00:24:00',
+                  //       style: TextStyle(fontSize: 25),
+                  //     ),
+                  //     // SizedBox(width: 10),
+                  //     // Text(timer.name),
+                  //   ],
 
-                // ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('${timer.name} ${timer.id}'),
-                    SizedBox(height: 5),
-                    Text(
-                      fmtCountdown,
-                      style: TextStyle(fontSize: 25),
-                    ),
-                  ],
-                ),
-                // Switch(value: alarm.isActive, onChanged: (_) => onToggle()),
-                ButtonBar(
-                  // alignment: MainAxisAlignment.end,
-                  children: [
-                    if (timer.status == TimerStatus.stop) ...[
-                      ElevatedButton(
-                        child: Icon(Icons.play_arrow, size: iconSize),
-                        onPressed: () {
-                          cubit.start();
-                        },
-                      )
-                    ] else if (timer.status == TimerStatus.pause) ...[
-                      ElevatedButton(
-                        child: Icon(Icons.stop, size: iconSize),
-                        onPressed: () {
-                          cubit.stop();
-                        },
-                      ),
-                      SizedBox(width: 10),
-                      ElevatedButton(
-                        child: Icon(Icons.play_arrow, size: iconSize),
-                        onPressed: () {
-                          cubit.start();
-                        },
-                      ),
-                    ] else ...[
-                      ElevatedButton(
-                        child: Icon(Icons.stop, size: iconSize),
-                        onPressed: () {
-                          cubit.stop();
-                        },
-                      ),
-                      SizedBox(width: 10),
-                      ElevatedButton(
-                        child: Icon(Icons.pause, size: iconSize),
-                        onPressed: () {
-                          cubit.pause();
-                        },
+                  // ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${timer.name} ${timer.id}'),
+                      SizedBox(height: 5),
+                      Text(
+                        fmtCountdown,
+                        style: TextStyle(fontSize: 25),
                       ),
                     ],
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            LinearProgressIndicator(value: 0.5),
-          ],
+                  ),
+                  // Switch(value: alarm.isActive, onChanged: (_) => onToggle()),
+                  ButtonBar(
+                    // alignment: MainAxisAlignment.end,
+                    children: [
+                      if (timer.status == TimerStatus.stop) ...[
+                        ElevatedButton(
+                          child: Icon(Icons.play_arrow, size: iconSize),
+                          onPressed: () {
+                            cubit.start();
+                          },
+                        )
+                      ] else if (timer.status == TimerStatus.pause) ...[
+                        ElevatedButton(
+                          child: Icon(Icons.stop, size: iconSize),
+                          onPressed: () {
+                            cubit.stop();
+                          },
+                        ),
+                        SizedBox(width: 10),
+                        ElevatedButton(
+                          child: Icon(Icons.play_arrow, size: iconSize),
+                          onPressed: () {
+                            cubit.start();
+                          },
+                        ),
+                      ] else ...[
+                        ElevatedButton(
+                          child: Icon(Icons.stop, size: iconSize),
+                          onPressed: () {
+                            cubit.stop();
+                          },
+                        ),
+                        SizedBox(width: 10),
+                        ElevatedButton(
+                          child: Icon(Icons.pause, size: iconSize),
+                          onPressed: () {
+                            cubit.pause();
+                          },
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+              LinearProgressIndicator(value: progress),
+              // SizedBox(height: 10),
+            ],
+          ),
         ),
       ),
       onTap: () {
+        // async.Future.delayed(Duration(milliseconds: 0)).then((value) {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => TimerEditView(timer: timer)),
         );
+        // });
       },
     );
   }
@@ -1566,7 +1595,10 @@ class TimerEditView extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Edit Timer'),
       ),
-      body: TimerEdit(timer: timer, isNew: isNew),
+      body: Padding(
+        padding: pagePadding,
+        child: TimerEdit(timer: timer, isNew: isNew),
+      ),
     );
   }
 }
@@ -1600,249 +1632,246 @@ class TimerEdit extends StatelessWidget {
 
     nameController.text = timer.name;
 
-    return Padding(
-      padding: pagePadding,
-      child: Form(
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Flexible(
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'h',
-                      border: OutlineInputBorder(),
-                    ),
-                    // initialValue: '01',
-                    controller: hourController,
-                    // onSaved: (name) {
-                    //   // TODO
-                    // },
-                    // onChanged: (String value) {
+    return Form(
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Flexible(
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'h',
+                    border: OutlineInputBorder(),
+                  ),
+                  // initialValue: '01',
+                  controller: hourController,
+                  // onSaved: (name) {
+                  //   // TODO
+                  // },
+                  // onChanged: (String value) {
 
-                    // },
-                    onFieldSubmitted: (String value) {
-                      final controller = hourController;
-                      if (value == '') {
-                        controller.text = '00';
-                        return;
-                      }
-                      final num = int.tryParse(value);
-                      if (num == null || num < 0) {
-                        controller.text = '00';
-                        return;
-                      }
-                    },
-                    // validator: (String? value) {
-                    //   if (value == null || value == '') {
-                    //     // return 'fill hours';
-                    //     return '';
-                    //   }
-                    //   final num = int.tryParse(value);
-                    //   if (num == null) {
-                    //     // return 'fill valid number';
-                    //     return '';
-                    //   }
-                    //   if (num < 0) {
-                    //     // return 'fill number greater then 0';
-                    //     return '';
-                    //   }
-                    //   print(num);
-                    //   return null;
-                    // },
-                    // autovalidateMode: AutovalidateMode.onUserInteraction,
-                    keyboardType: TextInputType.number,
-                    textInputAction: TextInputAction.next,
-                  ),
+                  // },
+                  onFieldSubmitted: (String value) {
+                    final controller = hourController;
+                    if (value == '') {
+                      controller.text = '00';
+                      return;
+                    }
+                    final num = int.tryParse(value);
+                    if (num == null || num < 0) {
+                      controller.text = '00';
+                      return;
+                    }
+                  },
+                  // validator: (String? value) {
+                  //   if (value == null || value == '') {
+                  //     // return 'fill hours';
+                  //     return '';
+                  //   }
+                  //   final num = int.tryParse(value);
+                  //   if (num == null) {
+                  //     // return 'fill valid number';
+                  //     return '';
+                  //   }
+                  //   if (num < 0) {
+                  //     // return 'fill number greater then 0';
+                  //     return '';
+                  //   }
+                  //   print(num);
+                  //   return null;
+                  // },
+                  // autovalidateMode: AutovalidateMode.onUserInteraction,
+                  keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.next,
                 ),
-                SizedBox(width: 10),
-                Flexible(
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 'm',
-                      border: OutlineInputBorder(),
-                    ),
-                    // initialValue: '02',
-                    // onSaved: (name) {
-                    // TODO
-                    // },
-                    controller: minuteController,
-                    onFieldSubmitted: (String value) {
-                      final controller = minuteController;
-                      if (value == '') {
-                        controller.text = '00';
-                        return;
-                      }
-                      final num = int.tryParse(value);
-                      if (num == null || num < 0) {
-                        controller.text = '00';
-                        return;
-                      }
-                      if (59 < num) {
-                        controller.text = '59';
-                        return;
-                      }
-                    },
-                    // validator: (value) {
-                    //   if (value == null || value == '') {
-                    //     // return 'fill hours';
-                    //     return '';
-                    //   }
-                    //   final num = int.tryParse(value);
-                    //   if (num == null) {
-                    //     // return 'fill valid number';
-                    //     return '';
-                    //   }
-                    //   if (num < 0 || 59 < num) {
-                    //     // return 'fill number greater then 0';
-                    //     return '';
-                    //   }
-                    //   print(num);
-                    //   return null;
-                    // },
-                    // autovalidateMode: AutovalidateMode.onUserInteraction,
-                    keyboardType: TextInputType.number,
-                    textInputAction: TextInputAction.next,
-                  ),
-                ),
-                SizedBox(width: 10),
-                Flexible(
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                      labelText: 's',
-                      border: OutlineInputBorder(),
-                    ),
-                    controller: secondController,
-                    onFieldSubmitted: (String value) {
-                      final controller = secondController;
-                      if (value == '') {
-                        controller.text = '00';
-                        return;
-                      }
-                      final num = int.tryParse(value);
-                      if (num == null || num < 0) {
-                        controller.text = '00';
-                        return;
-                      }
-                      if (59 < num) {
-                        controller.text = '59';
-                        return;
-                      }
-                    },
-                    // initialValue: '03',
-                    // onSaved: (name) {
-                    //   // TODO
-                    // },
-                    // validator: (name) {
-                    //   // TODO
-                    // },
-                    // autovalidateMode: AutovalidateMode.onUserInteraction,
-                    keyboardType: TextInputType.number,
-                    textInputAction: TextInputAction.next,
-                  ),
-                ),
-              ],
-            ),
-            verticalPadding,
-            TextFormField(
-              decoration: InputDecoration(
-                labelText: 'name',
-                border: OutlineInputBorder(),
               ),
-              // initialValue: 'timer',
-              controller: nameController,
-              onFieldSubmitted: (String value) {
-                final controller = nameController;
-                if (value == '') {
-                  controller.text = timer.name;
-                  return;
-                }
-              },
-              // autovalidateMode: AutovalidateMode.onUserInteraction,
-              textInputAction: TextInputAction.done,
+              SizedBox(width: 10),
+              Flexible(
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 'm',
+                    border: OutlineInputBorder(),
+                  ),
+                  // initialValue: '02',
+                  // onSaved: (name) {
+                  // TODO
+                  // },
+                  controller: minuteController,
+                  onFieldSubmitted: (String value) {
+                    final controller = minuteController;
+                    if (value == '') {
+                      controller.text = '00';
+                      return;
+                    }
+                    final num = int.tryParse(value);
+                    if (num == null || num < 0) {
+                      controller.text = '00';
+                      return;
+                    }
+                    if (59 < num) {
+                      controller.text = '59';
+                      return;
+                    }
+                  },
+                  // validator: (value) {
+                  //   if (value == null || value == '') {
+                  //     // return 'fill hours';
+                  //     return '';
+                  //   }
+                  //   final num = int.tryParse(value);
+                  //   if (num == null) {
+                  //     // return 'fill valid number';
+                  //     return '';
+                  //   }
+                  //   if (num < 0 || 59 < num) {
+                  //     // return 'fill number greater then 0';
+                  //     return '';
+                  //   }
+                  //   print(num);
+                  //   return null;
+                  // },
+                  // autovalidateMode: AutovalidateMode.onUserInteraction,
+                  keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.next,
+                ),
+              ),
+              SizedBox(width: 10),
+              Flexible(
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    labelText: 's',
+                    border: OutlineInputBorder(),
+                  ),
+                  controller: secondController,
+                  onFieldSubmitted: (String value) {
+                    final controller = secondController;
+                    if (value == '') {
+                      controller.text = '00';
+                      return;
+                    }
+                    final num = int.tryParse(value);
+                    if (num == null || num < 0) {
+                      controller.text = '00';
+                      return;
+                    }
+                    if (59 < num) {
+                      controller.text = '59';
+                      return;
+                    }
+                  },
+                  // initialValue: '03',
+                  // onSaved: (name) {
+                  //   // TODO
+                  // },
+                  // validator: (name) {
+                  //   // TODO
+                  // },
+                  // autovalidateMode: AutovalidateMode.onUserInteraction,
+                  keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.next,
+                ),
+              ),
+            ],
+          ),
+          verticalPadding,
+          TextFormField(
+            decoration: InputDecoration(
+              labelText: 'name',
+              border: OutlineInputBorder(),
             ),
-            verticalPadding,
-            ButtonBar(
-              alignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Visibility(
-                  visible: !isNew,
-                  child: ElevatedButton(
+            // initialValue: 'timer',
+            controller: nameController,
+            onFieldSubmitted: (String value) {
+              final controller = nameController;
+              if (value == '') {
+                controller.text = timer.name;
+                return;
+              }
+            },
+            // autovalidateMode: AutovalidateMode.onUserInteraction,
+            textInputAction: TextInputAction.done,
+          ),
+          verticalPadding,
+          ButtonBar(
+            alignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Visibility(
+                visible: !isNew,
+                child: ElevatedButton(
+                  onPressed: () {
+                    cubit.delete(timer);
+                    Navigator.pop(context);
+                  },
+                  child: Text('DELETE'),
+                ),
+              ),
+              ButtonBar(
+                children: [
+                  ElevatedButton(
                     onPressed: () {
-                      cubit.delete(timer);
                       Navigator.pop(context);
                     },
-                    child: Text('DELETE'),
+                    child: Text('CANCEL'),
                   ),
-                ),
-                ButtonBar(
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: Text('CANCEL'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        final name = nameController.text;
-                        final duration = Duration(
-                          hours: int.parse(hourController.text),
-                          minutes: int.parse(minuteController.text),
-                          seconds: int.parse(secondController.text),
-                        );
-                        final newTimer =
-                            timer.copyWith(duration: duration, name: name);
-                        isNew ? cubit.create(newTimer) : cubit.update(newTimer);
-                        Navigator.pop(context);
-                      },
-                      child: Text('SAVE'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            // ButtonBar(
-            //   children: [
-            //     // ElevatedButton(
-            //     //   child: Text('start'),
-            //     //   onPressed: () {
-            //     //     // TODO
-            //     //   },
-            //     // ),
-            //     if (isNew) ...[
-            //       ElevatedButton(
-            //         child: Text('cancel'),
-            //         onPressed: () {
-            //           // TODO
-            //         },
-            //       ),
-            //       ElevatedButton(
-            //         child: Text('create'),
-            //         onPressed: () {
-            //           // TODO
-            //         },
-            //       ),
-            //     ] else
-            //       ElevatedButton(
-            //         child: Text('update'),
-            //         onPressed: () {
-            //           // TODO
-            //         },
-            //       )
-            //   ],
-            // ),
-            // if (!isNew) ...[
-            //   Divider(),
-            //   ElevatedButton(
-            //     child: Text('delete'),
-            //     onPressed: () {
-            //       // TODO
-            //     },
-            //   ),
-            // ]
-          ],
-        ),
+                  ElevatedButton(
+                    onPressed: () {
+                      final name = nameController.text;
+                      final duration = Duration(
+                        hours: int.parse(hourController.text),
+                        minutes: int.parse(minuteController.text),
+                        seconds: int.parse(secondController.text),
+                      );
+                      final newTimer =
+                          timer.copyWith(duration: duration, name: name);
+                      isNew ? cubit.create(newTimer) : cubit.update(newTimer);
+                      Navigator.pop(context);
+                    },
+                    child: Text('SAVE'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          // ButtonBar(
+          //   children: [
+          //     // ElevatedButton(
+          //     //   child: Text('start'),
+          //     //   onPressed: () {
+          //     //     // TODO
+          //     //   },
+          //     // ),
+          //     if (isNew) ...[
+          //       ElevatedButton(
+          //         child: Text('cancel'),
+          //         onPressed: () {
+          //           // TODO
+          //         },
+          //       ),
+          //       ElevatedButton(
+          //         child: Text('create'),
+          //         onPressed: () {
+          //           // TODO
+          //         },
+          //       ),
+          //     ] else
+          //       ElevatedButton(
+          //         child: Text('update'),
+          //         onPressed: () {
+          //           // TODO
+          //         },
+          //       )
+          //   ],
+          // ),
+          // if (!isNew) ...[
+          //   Divider(),
+          //   ElevatedButton(
+          //     child: Text('delete'),
+          //     onPressed: () {
+          //       // TODO
+          //     },
+          //   ),
+          // ]
+        ],
       ),
     );
   }
