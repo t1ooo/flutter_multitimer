@@ -1,7 +1,7 @@
 // TODO: Navigator.pushNamed
 // TODO: nullable Settings.locale, add init to Repo
-// TODO: remove countdown field, calculate countdown
 // TODO: progress bar
+// TODO: add clear repos button in debug mode
 
 import 'dart:async' as async;
 import 'dart:convert';

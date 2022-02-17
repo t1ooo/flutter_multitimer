@@ -31,7 +31,7 @@ Future<void> main() async {
   //     : TimerNotificationService();
 
   final firstRun = await FirstRun.init();
-  await firstRun.reset();
+  // await firstRun.reset();
 
   runApp(
     /// Providers are above [MyApp] instead of inside it, so that tests
