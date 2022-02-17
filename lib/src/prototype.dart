@@ -19,34 +19,6 @@ import 'timer.dart';
 import 'ui_utils.dart';
 import 'utils/chaos_uitls.dart';
 
-// const dismissNotificationAfter = Duration(seconds: 10);
-
-// class FirstRun {
-//   final _key = '_is_first_run';
-//   bool? _isFirstRun;
-
-//   bool? get isFirstRun => _isFirstRun;
-
-//   Future<void> check() async {
-//     if (_isFirstRun != null) {
-//       return;
-//     }
-//     final prefs = await SharedPreferences.getInstance();
-//     if (prefs.containsKey(_key)) {
-//       _isFirstRun = false;
-//       return;
-//     }
-
-//     prefs.setBool(_key, true);
-//     _isFirstRun = true;
-//   }
-
-//   Future<void> reset() async {
-//      final prefs = await SharedPreferences.getInstance();
-//      prefs.remove(_key);
-//   }
-// }
-
 Future<void> clearSharedPreferences() async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.clear();
@@ -104,8 +76,6 @@ abstract class NotificationService {
   Future<void> cancel(int id);
   Future<void> dismiss(int id);
   Future<void> dispose();
-
-  // void setLocalizations(NotificationLocalizations l10n);
 }
 
 class TimerNotificationService implements NotificationService {
@@ -139,11 +109,6 @@ class TimerNotificationService implements NotificationService {
   async.Future<void> dispose() async {
     return;
   }
-
-  // @override
-  // void setLocalizations(NotificationLocalizations l10n) {
-  //   return;
-  // }
 }
 
 class NotificationLocalizations {
@@ -157,8 +122,6 @@ class NotificationLocalizations {
 
   String get notificationBody => l10n.notificationBody;
   String get stopSignalButton => l10n.stopSignalButton;
-
-  // String get notificationBody => null;
 }
 
 class NotificationAction {
@@ -169,33 +132,16 @@ class NotificationAction {
 }
 
 class AwesomeNotificationService implements NotificationService {
-  final String key;
-  final String name;
-  final String description;
-  // final bool updateChannel;
-  // NotificationLocalizations l10n;
-  // bool _isReady = false;
-
-  static final _log = Logger('AwesomeNotificationService');
-
-  // AwesomeNotificationService({
-  //   required this.key,
-  //   required this.name,
-  //   required this.description,
-  //   // required this.l10n,
-  //   this.updateChannel = false,
-  // });
-
-  // @override
-  // void setLocalizations(NotificationLocalizations l10n) {
-  //   this.l10n = l10n;
-  // }
-
   AwesomeNotificationService._({
     required this.key,
     required this.name,
     required this.description,
   });
+
+  final String key;
+  final String name;
+  final String description;
+  static final _log = Logger('AwesomeNotificationService');
 
   @override
   Future<void> dispose() async {
@@ -233,14 +179,12 @@ class AwesomeNotificationService implements NotificationService {
 
   @override
   async.Future<void> cancel(int id) async {
-    // await _init();
     _log.info('cancel: $id');
     await AwesomeNotifications().cancel(id);
   }
 
   @override
   async.Future<void> dismiss(int id) async {
-    // await _init();
     _log.info('dismiss: $id');
     await AwesomeNotifications().dismiss(id);
   }
@@ -251,12 +195,9 @@ class AwesomeNotificationService implements NotificationService {
     Duration delay, [
     List<NotificationAction>? actions,
   ]) async {
-    // await _init();
     _log.info('sendDelayed: $notification, $delay');
     final localTimeZone =
         await AwesomeNotifications().getLocalTimeZoneIdentifier();
-    // String utcTimeZone =
-    // await AwesomeNotifications().getLocalTimeZoneIdentifier();
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
         id: notification.id,
@@ -271,9 +212,7 @@ class AwesomeNotificationService implements NotificationService {
         interval: delay.inSeconds,
         timeZone: localTimeZone,
         preciseAlarm: true,
-        // timezone: utcTimeZone,
       ),
-      // actionButtons: [_notificationActionButton('stop', l10n.stopSignalButton)],
       actionButtons: actions?.map(_notificationActionButton).toList(),
     );
   }
@@ -291,90 +230,6 @@ class AwesomeNotificationService implements NotificationService {
   }
 }
 
-// class SnackBarNotification implements NotificationService {
-//   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey;
-//   NotificationLocalizations l10n;
-//   static final _log = Logger('SnackBarNotification');
-
-//   SnackBarNotification(this.scaffoldMessengerKey, this.l10n);
-
-//   @override
-//   async.Future<void> cancel(int id) {
-//     // TODO: implement cancel
-//     throw UnimplementedError();
-//   }
-
-//   @override
-//   async.Future<void> dismiss(int id) {
-//     // TODO: implement dismiss
-//     throw UnimplementedError();
-//   }
-
-//   @override
-//   async.Future<void> sendDelayed(Notification notification, Duration delay) {
-//     // TODO: implement sendDelayed
-//     throw UnimplementedError();
-//   }
-
-//   @override
-//   void setLocalizations(NotificationLocalizations l10n) {
-//     this.l10n = l10n;
-//   }
-
-//   void _showSnackBar(SnackBar Function(BuildContext) snackBarBuilder) {
-//     // WidgetsBinding.instance?.addPostFrameCallback((_) {
-//     final currentState = scaffoldMessengerKey.currentState;
-//     if (currentState == null) {
-//       _log.info('currentState is empty; return');
-//       return;
-//     }
-//     // final currentContext = navigatorKey.currentContext;
-//     // if (currentContext == null) {
-//     //   _log.info('currentContext is empty; return');
-//     //   return;
-//     // }
-//     currentState.hideCurrentSnackBar();
-//     currentState.showSnackBar(snackBarBuilder());
-//     // });
-//   }
-
-//   void _hideCurrentSnackBar() {
-//     // WidgetsBinding.instance?.addPostFrameCallback((_) {
-//     final currentState = scaffoldMessengerKey.currentState;
-//     if (currentState == null) {
-//       return;
-//     }
-//     currentState.hideCurrentSnackBar();
-//     // });
-//   }
-
-//   SnackBar _buildSnackBar() {
-//     // final l10n = appLocalizations(context);
-
-//     return SnackBar(
-//       content: Row(
-//         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//         children: [
-//           Text(l10n.notificationBody),
-//           ButtonBar(
-//             children: [
-//               ElevatedButton(
-//                 onPressed: () => {}, // TODO,
-//                 child: Text(l10n.stopSignalButton),
-//               ),
-//               // ElevatedButton(
-//               //   onPressed: alarmRunnerClient.snooze,
-//               //   child: Text(l10n.notificationSnoozeButton),
-//               // ),
-//             ],
-//           ),
-//         ],
-//       ),
-//       duration: Duration(days: 365),
-//     );
-//   // }
-// }
-
 abstract class TimerRepo {
   Future<List<Timer>> list();
   Future<Timer> create(Timer timer);
@@ -388,15 +243,11 @@ class InMemoryTimerRepo implements TimerRepo {
 
   @override
   Future<List<Timer>> list() async {
-    await _delay();
     return _timers.values.toList();
   }
 
   @override
   Future<Timer> create(Timer timer) async {
-    // if (_timers.containsKey(timer.id)) {
-    //   throw Exception('already exists');
-    // }
     _log.info('create: $timer');
     final id = _genId();
     final timerWithId = timer.copyWith(id: id);
@@ -410,7 +261,6 @@ class InMemoryTimerRepo implements TimerRepo {
     _log.info('update: $timer');
     if (!_timers.containsKey(timer.id)) {
       throw Exception('not found');
-      // return;
     }
     _timers[timer.id] = timer;
   }
@@ -419,10 +269,6 @@ class InMemoryTimerRepo implements TimerRepo {
   Future<void> delete(Timer timer) async {
     _log.info('delete: $timer');
     _timers.remove(timer.id);
-  }
-
-  Future<void> _delay() async {
-    await Future.delayed(Duration(milliseconds: 500), null);
   }
 
   int _id = 0;
@@ -452,43 +298,22 @@ class SharedPrefsTimerRepo implements TimerRepo {
     return timerWithId;
   }
 
-  // @override
-  // Future<Alarm?> get(int id) async {
-  //   final sharedPreferences = await SharedPreferences.getInstance();
-
-  //   final data = sharedPreferences.getString(_alarmKey(id));
-  //   if (data == null) {
-  //     return null;
-  //   }
-  //   return Alarm.fromJson(jsonDecode(data));
-  // }
-
   @override
   Future<List<Timer>> list() async {
     final sharedPrefs = await SharedPreferences.getInstance();
 
     return sharedPrefs.getKeys().where((key) {
-      // print(key);
       return key.startsWith(_timerKeyPrefix);
     }).map(
       (key) {
-        //  print(key);
         return Timer.fromJson(
+          // TODO: util mapJromJson
           jsonDecode(sharedPrefs.getString(key)!) as Map<String, dynamic>,
         );
       },
     ).toList()
       ..sort((a, b) => a.id - b.id);
   }
-
-  // @override
-  // Future<Alarm> mustGet(int id) async {
-  //   final alarm = await get(id);
-  //   if (alarm == null) {
-  //     throw Exception('alarm not found: $id');
-  //   }
-  //   return alarm;
-  // }
 
   @override
   Future<void> delete(Timer timer) async {
@@ -533,18 +358,6 @@ DateTime dateTime({
     microsecond,
   );
 }
-
-// class TimerLocalizations {
-//   TimerLocalizations([this.l10n]);
-
-//   factory TimerLocalizations.of(BuildContext context) {
-//     return TimerLocalizations(AppLocalizations.of(context));
-//   }
-
-//   final AppLocalizations? l10n;
-
-//   String get defaultName => 'timer';
-// }
 
 enum TimersCubitError {
   load,
@@ -599,8 +412,6 @@ class TimersCubit extends Cubit<TimersCubitState> {
   final Clock clock;
   static final _log = Logger('TimersCubit');
 
-  // void increment() => emit(state + 1);
-  // void decrement() => emit(state - 1);
   Future<void> load() async {
     try {
       final timers = await timerRepo.list();
@@ -608,40 +419,11 @@ class TimersCubit extends Cubit<TimersCubitState> {
     } on Exception catch (e) {
       _handleError(e, TimersCubitError.load);
     }
-    // await Future.delayed(Duration(milliseconds: 500), null);
-    // emit(TimersCubitState(timers: [
-    //   Timer(
-    //     id: 'a',
-    //     name: 'stop',
-    //     duration: Duration(seconds: 60 * 60 * 2),
-    //     countdown: Duration(seconds: 60 * 60 * 2),
-    //     status: TimerStatus.stop,
-    //   ),
-    //   Timer(
-    //     id: 'b',
-    //     name: 'start',
-    //     duration: Duration(seconds: 125),
-    //     countdown: Duration(seconds: 125),
-    //     status: TimerStatus.start,
-    //   ),
-    //   Timer(
-    //     id: 'c',
-    //     name: 'pause',
-    //     duration: Duration(seconds: 5),
-    //     countdown: Duration(seconds: 5),
-    //     status: TimerStatus.pause,
-    //   ),
-    // ]));
   }
 
   Future<void> create(Timer timer) async {
     _log.info('create');
     try {
-      // await timerRepo.create(timer.copyWith(
-      //   rest: timer.duration,
-      //   lastUpdate: clock.now(),
-      //   status: TimerStatus.stop,
-      // ));
       await timerRepo.create(timer.stop());
       final timers = await timerRepo.list();
       await _emitState(TimersCubitState(timers: timers));
@@ -667,15 +449,6 @@ class TimersCubit extends Cubit<TimersCubitState> {
           status: TimerStatus.stop,
         ),
       );
-      // await timerRepo.update(timer.stop());
-
-      // await timerRepo.delete(timer);
-      // await timerRepo.create(timer.copyWith(
-      //   countdown: timer.duration,
-      //   lastUpdate: clock.now(),
-      //   status: TimerStatus.stop,
-      // ));
-
       final timers = await timerRepo.list();
       await _emitState(TimersCubitState(timers: timers));
     } on Exception catch (e) {
@@ -703,11 +476,6 @@ class TimersCubit extends Cubit<TimersCubitState> {
     _log.error('', e);
     emit(state.copyWith(error: error)); // set error, keep the previous timers
   }
-
-  // Future<void> start(Timer timer) async {}
-  // Future<void> stop(Timer timer) async {}
-  // Future<void> pause(Timer timer) async {}
-  // Future<void> resume(Timer timer) async {}
 }
 
 enum TimerCubitError {
@@ -750,19 +518,13 @@ class TimerCubit extends Cubit<TimerCubitState> {
     this.clock,
     this.notificationService,
     this.l10n, [
-    // this.saveInterval = const Duration(seconds: 10),
     this.ticker = const Ticker(),
   ]) : super(TimerCubitState(timer: timer)) {
-    // if (saveInterval < const Duration(seconds: 1)) {
-    // throw Exception('saveInterval should be >= than 1 second');
-    // }
     _init();
   }
 
   final NotificationService notificationService;
 
-  /// delay between saving the current state of the timer to the repository
-  // final Duration saveInterval;
   final TimerRepo timerRepo;
   final Clock clock;
   final Ticker ticker;
@@ -774,33 +536,12 @@ class TimerCubit extends Cubit<TimerCubitState> {
   void _init() {
     // resume started timer after app restart
     if (state.timer.status == TimerStatus.start) {
-      // final stopAt = state.timer.startedAt.add(state.timer.countdown);
-      // final countdown = stopAt.difference(clock.now()) + Duration(seconds: 2);
-
-      // final countdown = state.timer.countdown(clock.now());
-      // if (countdown <= Duration.zero) {
-      //   _log.info('timer ended when the app was not running: ${state.timer}');
-      //   _done();
-      // } else {
-      //   _restart(countdown);
-      // }
-
-      // resumeStarted();
       if (state.timer.countdown(clock.now()) <= Duration.zero) {
         _log.info('timer ended when the app was not running: ${state.timer}');
         _done();
       } else {
         _resumeStarted();
       }
-
-      // if (clock
-      //     .now()
-      //     .isAfter(state.timer.startedAt.add(state.timer.countdown))) {
-      //   _log.info('done when the app was not running');
-      //   _done();
-      // } else {
-      //   start();
-      // }
     }
   }
 
@@ -808,16 +549,11 @@ class TimerCubit extends Cubit<TimerCubitState> {
   Future<void> close() {
     _log.info('close: ${state.timer}');
     _tickerSub?.cancel();
-    // TODO: is it working correctly? maybe should be canceled in TimersCubit
     notificationService.cancel(state.timer.id);
     return super.close();
   }
 
   Future<void> start() async {
-    // final timer = state.timer.copyWith(
-    //   status: TimerStatus.start,
-    //   startedAt: clock.now(),
-    // );
     final timer = state.timer.start(clock.now());
     emit(TimerCubitState(timer: timer));
 
@@ -829,10 +565,6 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   Future<void> _resumeStarted() async {
-    // final timer = state.timer.copyWith(
-    //   status: TimerStatus.start,
-    //   startedAt: clock.now(),
-    // );
     final timer = state.timer.resume(clock.now());
     emit(TimerCubitState(timer: timer));
 
@@ -844,34 +576,12 @@ class TimerCubit extends Cubit<TimerCubitState> {
     async.unawaited(_updateTimer(timer));
   }
 
-  /// restart timer after app restart
-  // Future<void> _restart(Duration countdown) async {
-  //   // final timer = state.timer.copyWith(
-  //   //   // status: TimerStatus.start,
-  //   //   startedAt: clock.now(),
-  //   //   // rest: countdown,
-  //   // );
-  //   final timer = state.timer.start(clock.now());
-  //   emit(TimerCubitState(timer: timer));
-
-  //   await _tickerSub?.cancel();
-  //   _tickerSub = ticker.tick(state.timer.duration).listen(_tick);
-
-  //   _sendNotification(timer);
-
-  //   _updateTimer(timer);
-  // }
-
   Future<void> stop() async {
     async.unawaited(_done());
     async.unawaited(notificationService.cancel(state.timer.id));
   }
 
   Future<void> _done() async {
-    // final timer = state.timer.copyWith(
-    //   status: TimerStatus.stop,
-    //   rest: state.timer.duration,
-    // );
     final timer = state.timer.stop();
 
     emit(TimerCubitState(timer: timer));
@@ -882,10 +592,6 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   Future<void> pause() async {
-    // final timer = state.timer.copyWith(
-    // status: TimerStatus.pause,
-    // rest: state.timer.countdown(clock.now()),
-    // );
     final timer = state.timer.pause(clock.now());
     emit(TimerCubitState(timer: timer));
 
@@ -897,10 +603,6 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   Future<void> resume() async {
-    // final timer = state.timer.copyWith(
-    // status: TimerStatus.start,
-    // startedAt: clock.now(),
-    // );
     final timer = state.timer.resume(clock.now());
     emit(TimerCubitState(timer: timer));
 
@@ -920,13 +622,8 @@ class TimerCubit extends Cubit<TimerCubitState> {
       return;
     }
 
-    // final timer = state.timer.copyWith(countdown: countdown);
     final timer = state.timer.copyWith();
     emit(TimerCubitState(timer: timer));
-
-    // if (countdown.inSeconds % saveInterval.inSeconds == 0) {
-    // _updateTimer(timer);
-    // }
   }
 
   Future<void> _sendNotification(Timer timer) async {
@@ -954,12 +651,6 @@ class TimerCubit extends Cubit<TimerCubitState> {
     this.l10n = l10n;
   }
 
-  // Future<void> _emitState(TimerCubitState newState) async {
-  //   randomException();
-  //   await asyncRandomDelay();
-  //   emit(newState);
-  // }
-
   void _handleError(Exception e, TimerCubitError error) {
     _log.error('', e);
     emit(state.copyWith(error: error)); // set error, keep the previous timers
@@ -977,13 +668,9 @@ class Ticker {
   }
 }
 
-// final timersCubit = TimersCubit()..load();
-
 // UI --------------------------------------
 
 final dateFormat = DateFormat('HH:mm:ss');
-// const pagePadding = EdgeInsets.all(20);
-// const pagePadding = EdgeInsets.symmetric(vertical: 20, horizontal: 20);
 
 DateTime dateTimeFromDuration(Duration duration) {
   return dateTime(
@@ -992,10 +679,6 @@ DateTime dateTimeFromDuration(Duration duration) {
     second: duration.inSeconds % 60,
   );
 }
-
-// String formatCountdown(Duration countdown) {
-//   return dateFormat.format(dateTimeFromDuration(countdown));
-// }
 
 String formatCountdown(Duration countdown) {
   final inSeconds =
@@ -1020,26 +703,7 @@ class HomeView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Timers'),
-        // actions: [
-        //   IconButton(
-        //     icon: const Icon(Icons.settings),
-        //     onPressed: () {
-        //       // Navigator.pushNamed(context, SettingsView.routeName);
-        //       Navigator.push(
-        //         context,
-        //         MaterialPageRoute(
-        //           builder: (_) => SettingsView(),
-        //         ),
-        //       );
-        //     },
-        //   ),
-        // ],
       ),
-      // body: TimerList(),
-      // body: BlocProvider(
-      // create: (_) => TimersCubit()..load(),
-      // child: TimerList(),
-      // ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -1074,7 +738,6 @@ class HomeView extends StatelessWidget {
         ),
       ),
       body: TimerList(),
-
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -1107,7 +770,6 @@ class TimerList extends StatelessWidget {
     final cubit = context.watch<TimersCubit>();
 
     if (cubit.state.error != null) {
-      // return Text(cubit.state.error!.tr(AppLocalizations.of(context)!));
       showErrorSnackBar(
         context,
         cubit.state.error!.tr(AppLocalizations.of(context)!),
@@ -1116,18 +778,13 @@ class TimerList extends StatelessWidget {
     if (cubit.state.timers == null) {
       return Center(child: CircularProgressIndicator());
     }
-    // print(AppLocalizations.of(context));
+
     return ListView(
-      // direction: Axis.vertical,
-      // crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final timer in cubit.state.timers!)
           BlocProvider(
             // we need key in BlocProvider to update TimerCubit when timer is updated
-            // TODO: remove lastUpdate from Timer, replace key to {timer.id timer.status}
             key: Key('${timer.id} ${timer.lastUpdate}'),
-            // key: Key('${timer.id} ${timer.status}'),
-            // key: Key('${timer.id}'),
             create: (_) => TimerCubit(
               timer,
               context.read<TimerRepo>(),
@@ -1135,202 +792,13 @@ class TimerList extends StatelessWidget {
               context.read<NotificationService>(),
               NotificationLocalizations.of(context),
             ), //..setLocalizations(NotificationLocalizations.of(context)),
-            // create: (_) {
-            //   final timerCubit = TimerCubit(
-            //     timer,
-            //     context.read<TimerRepo>(),
-            //     context.read<Clock>(),
-            //     context.read<NotificationService>(),
-            //     NotificationLocalizations.of(context),
-            //   );
-            //   context.read<SettingsCubit>().stream.listen((event) {
-            //     // print(event);
-            //     // print(AppLocalizations.of(context));
-            //     timerCubit
-            //         .setLocalizations(NotificationLocalizations.of(context));
-            //   });
-            //   return timerCubit;
-            // }, //..setLocalizations(NotificationLocalizations.of(context)),
+
             child: TimerListItem(/* key: Key(timer.id.toString()) */),
           ),
-        // TimerListItemV2(
-        //   key: Key('${timer.id} ${timer.lastUpdate}'),
-        //   timer: timer,
-        // ),
-        // BlocBuilder<TimerCubit, TimerCubitState>(
-        //   bloc: TimerCubit(timer),
-        //   builder: (BuildContext context, state) { return Container(); },
-        //   // child: TimerListItem(),
-        // ),
-        // TimerListItemV2(timer: timer)
       ],
     );
   }
 }
-
-// class TimerListItemV3 extends StatelessWidget {
-//   TimerListItemV3({
-//     Key? key,
-//     required this.timer,
-//   }) : super(key: key);
-
-//   Timer timer;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return BlocProvider(
-//       create: (_) => TimerCubit(timer, Ticker()),
-//       child: TimerListItem(),
-//     );
-//   }
-// }
-
-// class TimerListItemV2 extends StatefulWidget {
-//   TimerListItemV2({
-//     Key? key,
-//     required this.timer,
-//   }) : super(key: key);
-
-//   Timer timer;
-
-//   @override
-//   State<TimerListItemV2> createState() => _TimerListItemV2State();
-// }
-
-// class _TimerListItemV2State extends State<TimerListItemV2> {
-//   late TimerCubit cubit;
-
-//   @override
-//   void initState() {
-//     cubit = TimerCubit(widget.timer, Ticker());
-//     super.initState();
-//   }
-
-//   @override
-//   void dispose() {
-//     cubit.close();
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return BlocBuilder<TimerCubit, TimerCubitState>(
-//       bloc: cubit,
-//       builder: builder,
-//     );
-//   }
-
-//   Widget builder(BuildContext context, TimerCubitState state) {
-//     if (state.error != null) {
-//       return Text(state.error.toString());
-//     }
-
-//     final timer = state.timer;
-//     // print(timer.id);
-
-//     const iconSize = 45.0;
-//     // timer.countdown.inSeconds
-//     final fmtCountdown = dateFormat.format(dateTime(
-//       hour: timer.countdown.inSeconds ~/ (60 * 60),
-//       minute: timer.countdown.inSeconds ~/ 60,
-//       second: timer.countdown.inSeconds % 60,
-//     ));
-
-//     return InkWell(
-//       child: Padding(
-//         // padding: pagePadding,
-//         padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 10),
-//         child: Column(
-//           // mainAxisAlignment: MainAxisAlignment.center,
-//           // crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             // Text('name'),
-//             // SizedBox(height: 5),
-//             Row(
-//               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 // Row(
-//                 //   crossAxisAlignment: CrossAxisAlignment.baseline,
-//                 //   textBaseline: TextBaseline.ideographic,
-//                 //   children: [
-//                 //     Text(
-//                 //       '00:24:00',
-//                 //       style: TextStyle(fontSize: 25),
-//                 //     ),
-//                 //     // SizedBox(width: 10),
-//                 //     // Text(timer.name),
-//                 //   ],
-
-//                 // ),
-//                 Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   children: [
-//                     Text(timer.name),
-//                     SizedBox(height: 5),
-//                     Text(
-//                       fmtCountdown,
-//                       style: TextStyle(fontSize: 25),
-//                     ),
-//                   ],
-//                 ),
-//                 // Switch(value: alarm.isActive, onChanged: (_) => onToggle()),
-//                 ButtonBar(
-//                     // alignment: MainAxisAlignment.end,
-//                     children: [
-//                       if (timer.status == TimerStatus.stop) ...[
-//                         ElevatedButton(
-//                           child: Icon(Icons.play_arrow, size: iconSize),
-//                           onPressed: () {
-//                             cubit.start();
-//                           },
-//                         )
-//                       ] else if (timer.status == TimerStatus.pause) ...[
-//                         ElevatedButton(
-//                           child: Icon(Icons.stop, size: iconSize),
-//                           onPressed: () {
-//                             cubit.stop();
-//                           },
-//                         ),
-//                         SizedBox(width: 10),
-//                         ElevatedButton(
-//                           child: Icon(Icons.play_arrow, size: iconSize),
-//                           onPressed: () {
-//                             cubit.start();
-//                           },
-//                         ),
-//                       ] else ...[
-//                         ElevatedButton(
-//                           child: Icon(Icons.stop, size: iconSize),
-//                           onPressed: () {
-//                             cubit.stop();
-//                           },
-//                         ),
-//                         SizedBox(width: 10),
-//                         ElevatedButton(
-//                           child: Icon(Icons.pause, size: iconSize),
-//                           onPressed: () {
-//                             cubit.pause();
-//                           },
-//                         ),
-//                       ],
-//                     ]),
-//               ],
-//             ),
-//             SizedBox(height: 10),
-//             LinearProgressIndicator(value: 0.5),
-//           ],
-//         ),
-//       ),
-//       onTap: () {
-//         Navigator.push(
-//           context,
-//           MaterialPageRoute(builder: (_) => TimerEditView()),
-//         );
-//       },
-//     );
-//   }
-// }
 
 class TimerListItem extends StatelessWidget {
   const TimerListItem({
@@ -1359,14 +827,7 @@ class TimerListItem extends StatelessWidget {
     final countdown = timer.countdown(clock.now());
     final fmtCountdown = formatCountdown(countdown);
     final progress =
-        // ((countdown + Duration(seconds: 1)).inMicroseconds /
-        //     timer.duration.inMicroseconds);
         1 - (countdown.inMicroseconds / timer.duration.inMicroseconds);
-    // countdown.inMicroseconds / timer.duration.inMicroseconds;
-    // if (progress > 0) {
-    // progress += 0.1;
-    // }
-    // print(progress);
 
     return GestureDetector(
       child: Card(
@@ -1374,28 +835,11 @@ class TimerListItem extends StatelessWidget {
           // padding: pagePadding,
           padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 20),
           child: Column(
-            // mainAxisAlignment: MainAxisAlignment.center,
-            // crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Text('name'),
-              // SizedBox(height: 5),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Row(
-                  //   crossAxisAlignment: CrossAxisAlignment.baseline,
-                  //   textBaseline: TextBaseline.ideographic,
-                  //   children: [
-                  //     Text(
-                  //       '00:24:00',
-                  //       style: TextStyle(fontSize: 25),
-                  //     ),
-                  //     // SizedBox(width: 10),
-                  //     // Text(timer.name),
-                  //   ],
-
-                  // ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1407,9 +851,7 @@ class TimerListItem extends StatelessWidget {
                       ),
                     ],
                   ),
-                  // Switch(value: alarm.isActive, onChanged: (_) => onToggle()),
                   ButtonBar(
-                    // alignment: MainAxisAlignment.end,
                     children: [
                       if (timer.status == TimerStatus.stop) ...[
                         ElevatedButton(
@@ -1456,160 +898,6 @@ class TimerListItem extends StatelessWidget {
               // SizedBox(height: 10),
             ],
           ),
-        ),
-      ),
-      onTap: () {
-        // async.Future.delayed(Duration(milliseconds: 0)).then((value) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => TimerEditView(timer: timer)),
-        );
-        // });
-      },
-    );
-  }
-}
-
-class TimerListItemV2 extends StatelessWidget {
-  const TimerListItemV2({
-    Key? key,
-    required this.timer,
-  }) : super(key: key);
-
-  final Timer timer;
-
-  @override
-  Widget build(BuildContext context) {
-    // return BlocBuilder<TimerCubit, TimerCubitState>(
-    //   bloc: TimerCubit(
-    //     timer,
-    //     context.read<TimerRepo>(),
-    //     context.read<Clock>(),
-    //     context.read<NotificationService>(),
-    //     NotificationLocalizations.of(context),
-    //   ),
-    //   builder: builder,
-    // );
-    return BlocProvider(
-      // we need key in BlocProvider to update TimerCubit when timer is updated
-      // TODO: remove lastUpdate from Timer, replace key to {timer.id timer.status}
-      // key: Key('${timer.id} ${timer.lastUpdate}'),
-      // key: Key('${timer.id} ${timer.status}'),
-      // key: Key('${timer.id}'),
-      create: (_) => TimerCubit(
-        timer,
-        context.read<TimerRepo>(),
-        context.read<Clock>(),
-        context.read<NotificationService>(),
-        NotificationLocalizations.of(context),
-        // ..setLocalizations(NotificationLocalizations.of(context)),
-      ), //..setLocalizations(NotificationLocalizations.of(context)),
-      child: TimerListItem(/* key: Key(timer.id.toString()) */),
-    );
-  }
-
-  Widget builder(BuildContext context) {
-    final cubit = context.watch<TimerCubit>();
-    final clock = context.read<Clock>();
-
-    if (cubit.state.error != null) {
-      showErrorSnackBar(
-        context,
-        cubit.state.error!.tr(AppLocalizations.of(context)!),
-      );
-    }
-
-    final timer = cubit.state.timer;
-
-    const iconSize = 40.0;
-    // timer.countdown.inSeconds
-    final fmtCountdown = formatCountdown(timer.countdown(clock.now()));
-
-    return InkWell(
-      child: Padding(
-        // padding: pagePadding,
-        padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 10),
-        child: Column(
-          // mainAxisAlignment: MainAxisAlignment.center,
-          // crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Text('name'),
-            // SizedBox(height: 5),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Row(
-                //   crossAxisAlignment: CrossAxisAlignment.baseline,
-                //   textBaseline: TextBaseline.ideographic,
-                //   children: [
-                //     Text(
-                //       '00:24:00',
-                //       style: TextStyle(fontSize: 25),
-                //     ),
-                //     // SizedBox(width: 10),
-                //     // Text(timer.name),
-                //   ],
-
-                // ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('${timer.name} ${timer.id}'),
-                    SizedBox(height: 5),
-                    Text(
-                      fmtCountdown,
-                      style: TextStyle(fontSize: 25),
-                    ),
-                  ],
-                ),
-                // Switch(value: alarm.isActive, onChanged: (_) => onToggle()),
-                ButtonBar(
-                  // alignment: MainAxisAlignment.end,
-                  children: [
-                    if (timer.status == TimerStatus.stop) ...[
-                      ElevatedButton(
-                        child: Icon(Icons.play_arrow, size: iconSize),
-                        onPressed: () {
-                          cubit.start();
-                        },
-                      )
-                    ] else if (timer.status == TimerStatus.pause) ...[
-                      ElevatedButton(
-                        child: Icon(Icons.stop, size: iconSize),
-                        onPressed: () {
-                          cubit.stop();
-                        },
-                      ),
-                      SizedBox(width: 10),
-                      ElevatedButton(
-                        child: Icon(Icons.play_arrow, size: iconSize),
-                        onPressed: () {
-                          cubit.start();
-                        },
-                      ),
-                    ] else ...[
-                      ElevatedButton(
-                        child: Icon(Icons.stop, size: iconSize),
-                        onPressed: () {
-                          cubit.stop();
-                        },
-                      ),
-                      SizedBox(width: 10),
-                      ElevatedButton(
-                        child: Icon(Icons.pause, size: iconSize),
-                        onPressed: () {
-                          cubit.pause();
-                        },
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            LinearProgressIndicator(value: 0.5),
-          ],
         ),
       ),
       onTap: () {
@@ -1683,14 +971,7 @@ class TimerEdit extends StatelessWidget {
                     labelText: 'h',
                     border: OutlineInputBorder(),
                   ),
-                  // initialValue: '01',
                   controller: hourController,
-                  // onSaved: (name) {
-                  //   // TODO
-                  // },
-                  // onChanged: (String value) {
-
-                  // },
                   onFieldSubmitted: (String value) {
                     final controller = hourController;
                     if (value == '') {
@@ -1703,24 +984,6 @@ class TimerEdit extends StatelessWidget {
                       return;
                     }
                   },
-                  // validator: (String? value) {
-                  //   if (value == null || value == '') {
-                  //     // return 'fill hours';
-                  //     return '';
-                  //   }
-                  //   final num = int.tryParse(value);
-                  //   if (num == null) {
-                  //     // return 'fill valid number';
-                  //     return '';
-                  //   }
-                  //   if (num < 0) {
-                  //     // return 'fill number greater then 0';
-                  //     return '';
-                  //   }
-                  //   print(num);
-                  //   return null;
-                  // },
-                  // autovalidateMode: AutovalidateMode.onUserInteraction,
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.next,
                 ),
@@ -1732,10 +995,6 @@ class TimerEdit extends StatelessWidget {
                     labelText: 'm',
                     border: OutlineInputBorder(),
                   ),
-                  // initialValue: '02',
-                  // onSaved: (name) {
-                  // TODO
-                  // },
                   controller: minuteController,
                   onFieldSubmitted: (String value) {
                     final controller = minuteController;
@@ -1753,24 +1012,6 @@ class TimerEdit extends StatelessWidget {
                       return;
                     }
                   },
-                  // validator: (value) {
-                  //   if (value == null || value == '') {
-                  //     // return 'fill hours';
-                  //     return '';
-                  //   }
-                  //   final num = int.tryParse(value);
-                  //   if (num == null) {
-                  //     // return 'fill valid number';
-                  //     return '';
-                  //   }
-                  //   if (num < 0 || 59 < num) {
-                  //     // return 'fill number greater then 0';
-                  //     return '';
-                  //   }
-                  //   print(num);
-                  //   return null;
-                  // },
-                  // autovalidateMode: AutovalidateMode.onUserInteraction,
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.next,
                 ),
@@ -1799,14 +1040,6 @@ class TimerEdit extends StatelessWidget {
                       return;
                     }
                   },
-                  // initialValue: '03',
-                  // onSaved: (name) {
-                  //   // TODO
-                  // },
-                  // validator: (name) {
-                  //   // TODO
-                  // },
-                  // autovalidateMode: AutovalidateMode.onUserInteraction,
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.next,
                 ),
@@ -1819,7 +1052,6 @@ class TimerEdit extends StatelessWidget {
               labelText: 'name',
               border: OutlineInputBorder(),
             ),
-            // initialValue: 'timer',
             controller: nameController,
             onFieldSubmitted: (String value) {
               final controller = nameController;
@@ -1828,7 +1060,6 @@ class TimerEdit extends StatelessWidget {
                 return;
               }
             },
-            // autovalidateMode: AutovalidateMode.onUserInteraction,
             textInputAction: TextInputAction.done,
           ),
           verticalPadding,
@@ -1872,45 +1103,6 @@ class TimerEdit extends StatelessWidget {
               ),
             ],
           ),
-          // ButtonBar(
-          //   children: [
-          //     // ElevatedButton(
-          //     //   child: Text('start'),
-          //     //   onPressed: () {
-          //     //     // TODO
-          //     //   },
-          //     // ),
-          //     if (isNew) ...[
-          //       ElevatedButton(
-          //         child: Text('cancel'),
-          //         onPressed: () {
-          //           // TODO
-          //         },
-          //       ),
-          //       ElevatedButton(
-          //         child: Text('create'),
-          //         onPressed: () {
-          //           // TODO
-          //         },
-          //       ),
-          //     ] else
-          //       ElevatedButton(
-          //         child: Text('update'),
-          //         onPressed: () {
-          //           // TODO
-          //         },
-          //       )
-          //   ],
-          // ),
-          // if (!isNew) ...[
-          //   Divider(),
-          //   ElevatedButton(
-          //     child: Text('delete'),
-          //     onPressed: () {
-          //       // TODO
-          //     },
-          //   ),
-          // ]
         ],
       ),
     );
@@ -1959,7 +1151,6 @@ class SettingsCubitState extends Equatable {
 class SettingsCubit extends Cubit<SettingsCubitState> {
   SettingsCubit(this.settingsRepo) : super(SettingsCubitState());
 
-  // Future<List<Timer>>? _timers;
   final SettingsRepo settingsRepo;
   static final _log = Logger('SettingsCubit');
 
@@ -1968,8 +1159,6 @@ class SettingsCubit extends Cubit<SettingsCubitState> {
     emit(state.copyWith(error: error)); // set error, keep the previous timers
   }
 
-  // void increment() => emit(state + 1);
-  // void decrement() => emit(state - 1);
   Future<void> load() async {
     try {
       final settings = await settingsRepo.get();
@@ -1981,7 +1170,6 @@ class SettingsCubit extends Cubit<SettingsCubitState> {
 
   Future<void> updateLocale(Locale locale) async {
     _log.info('update');
-
     try {
       {
         final settings = (await settingsRepo.get()) ?? Settings(locale: locale);
@@ -2014,10 +1202,6 @@ class SettingsView extends StatelessWidget {
 }
 
 class SettingsForm extends StatelessWidget {
-  // final settingsProvider = locator<SettingsProvider>();
-  // final navigationService = locator<NavigationService>();
-  // static final _localeController = EditingController<Locale>(Locale('_'));
-
   const SettingsForm({Key? key}) : super(key: key);
 
   @override
@@ -2028,45 +1212,15 @@ class SettingsForm extends StatelessWidget {
     final cubit = context.watch<SettingsCubit>();
 
     if (cubit.state.error != null) {
-      // return Text(cubit.state.error!.tr(AppLocalizations.of(context)!));
       showErrorSnackBar(
         context,
         cubit.state.error!.tr(AppLocalizations.of(context)!),
       );
     }
-    // if (cubit.state.settings == null) {
-    // return Center(child: CircularProgressIndicator());
-    // }
 
     return Form(
       child: ListView(
         children: [
-          // SizedBox(height: 10),
-          // ControlledSelectFormField<Locale>(
-          //   labelText: l10n.languageLabel,
-          //   controller: _localeController,
-          //   values: supportedLocales(),
-          //   onChange: (Locale locale) {
-          //     unawaited(settingsProvider.updateLocale(locale));
-          //   },
-          // ),
-
-          //  for (final locale in AppLocalizations.supportedLocales)
-          //   RadioListTile<Locale>(
-          //     title: Text(locale.toString()),
-          //     value: locale,
-          //     groupValue: Localizations.localeOf(context),
-          //     onChanged: (newValue) {
-          //       if (newValue == null) {
-          //         return;
-          //       }
-          //     //   controller.value = newValue;
-          //     //   onChange?.call(controller.value);
-
-          //     //   Navigator.pop(context);
-          //     },
-          //   )
-
           DropdownButtonFormField<Locale>(
             items: [
               for (final locale in AppLocalizations.supportedLocales)
