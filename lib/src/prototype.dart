@@ -1,6 +1,5 @@
 // TODO: Navigator.pushNamed
 // TODO: nullable Settings.locale, add init to Repo
-// TODO: progress bar
 // TODO: add clear repos button in debug mode
 
 import 'dart:async' as async;
@@ -917,7 +916,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
     if (state.timer.countdown(clock.now()) < Duration.zero) {
       final timer = state.timer.copyWith();
       emit(TimerCubitState(timer: timer));
-      await async.Future.delayed(Duration(seconds:1));
+      await async.Future.delayed(Duration(seconds: 1));
       async.unawaited(_done());
       return;
     }
@@ -1000,7 +999,8 @@ DateTime dateTimeFromDuration(Duration duration) {
 // }
 
 String formatCountdown(Duration countdown) {
-  final inSeconds = (countdown.inMicroseconds / Duration.microsecondsPerSecond).round();
+  final inSeconds =
+      (countdown.inMicroseconds / Duration.microsecondsPerSecond).round();
   final dTimer = dateTime(
     hour: inSeconds ~/ (60 * 60 * 24),
     minute: inSeconds ~/ 60,
@@ -1318,13 +1318,13 @@ class TimerListItem extends StatelessWidget {
     // timer.countdown.inSeconds
     final countdown = timer.countdown(clock.now());
     final fmtCountdown = formatCountdown(countdown);
-    final progress = 
+    final progress =
         // ((countdown + Duration(seconds: 1)).inMicroseconds /
         //     timer.duration.inMicroseconds);
         1 - (countdown.inMicroseconds / timer.duration.inMicroseconds);
-        // countdown.inMicroseconds / timer.duration.inMicroseconds;
+    // countdown.inMicroseconds / timer.duration.inMicroseconds;
     // if (progress > 0) {
-      // progress += 0.1;
+    // progress += 0.1;
     // }
     // print(progress);
 
