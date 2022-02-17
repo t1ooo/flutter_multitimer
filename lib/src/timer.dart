@@ -45,14 +45,6 @@ class Timer extends Equatable {
         lastUpdate = now,
         startedAt = now;
 
-  Timer start(DateTime now) {
-    return copyWith(
-      status: TimerStatus.start,
-      startedAt: now,
-      rest: duration,
-    );
-  }
-
   final int id;
   final String name;
   final Duration duration;
@@ -60,6 +52,14 @@ class Timer extends Equatable {
   final TimerStatus status;
   final DateTime lastUpdate;
   final DateTime startedAt;
+
+  Timer start(DateTime now) {
+    return copyWith(
+      status: TimerStatus.start,
+      startedAt: now,
+      rest: duration,
+    );
+  }
 
   Timer resume(DateTime now) {
     return copyWith(
@@ -117,8 +117,7 @@ class Timer extends Equatable {
   List<Object?> get props =>
       [id, name, duration, rest, status, lastUpdate, startedAt];
 
-  factory Timer.fromJson(Map<String, dynamic> json) =>
-      _$TimerFromJson(json);
+  factory Timer.fromJson(Map<String, dynamic> json) => _$TimerFromJson(json);
 
   Map<String, dynamic> toJson() => _$TimerToJson(this);
 }

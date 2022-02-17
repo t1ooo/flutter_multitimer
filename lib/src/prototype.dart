@@ -774,6 +774,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
   // static const notificationId = 0;
 
   void _init() {
+    // resume started timer after app restart
     if (state.timer.status == TimerStatus.start) {
       // final stopAt = state.timer.startedAt.add(state.timer.countdown);
       // final countdown = stopAt.difference(clock.now()) + Duration(seconds: 2);
@@ -785,7 +786,14 @@ class TimerCubit extends Cubit<TimerCubitState> {
       // } else {
       //   _restart(countdown);
       // }
-      resumeStarted();
+
+      // resumeStarted();
+      if (state.timer.countdown(clock.now()) <= Duration.zero) {
+        _log.info('timer ended when the app was not running: ${state.timer}');
+        _done();
+      } else {
+        _resumeStarted();
+      }
 
       // if (clock
       //     .now()
@@ -822,7 +830,7 @@ class TimerCubit extends Cubit<TimerCubitState> {
     async.unawaited(_updateTimer(timer));
   }
 
-  Future<void> resumeStarted() async {
+  Future<void> _resumeStarted() async {
     // final timer = state.timer.copyWith(
     //   status: TimerStatus.start,
     //   startedAt: clock.now(),
