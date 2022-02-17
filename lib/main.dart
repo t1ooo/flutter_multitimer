@@ -31,6 +31,7 @@ void main() async {
   //     : TimerNotificationService();
 
   final firstRun = await FirstRun.init();
+  firstRun.reset();
 
   runApp(
     /// Providers are above [MyApp] instead of inside it, so that tests

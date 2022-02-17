@@ -24,6 +24,7 @@ class MyApp extends StatelessWidget {
     // print(Localizations.localeOf(context));
     return MultiBlocProvider(
       providers: [
+        // TODO: move to main ?
         BlocProvider<TimersCubit>(
           create: (context) =>
               // TimersCubit(RepositoryProvider.of<TimerRepo>(context))..load(),

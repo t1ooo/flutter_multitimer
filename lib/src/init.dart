@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_pomodoro_prototype_skeleton_bloc/src/prototype.dart';
 import 'package:logging/logging.dart';
 
+import 'timer.dart';
 import 'settings_repository.dart';
 
 final _initLog = Logger('init');
@@ -45,12 +46,13 @@ Future<NotificationService> notificationService() async {
 }
 
 Future<TimerRepo> timerRepo(bool isFirstRun) async {
-  final timerRepo = InMemoryTimerRepo();
-  // if (isFirstRun) {
-  for (final timer in initialTimers()) {
-    await timerRepo.create(timer);
+  // final timerRepo = InMemoryTimerRepo();
+  final timerRepo = SharedPrefsTimerRepo();
+  if (isFirstRun) {
+    for (final timer in initialTimers()) {
+      await timerRepo.create(timer);
+    }
   }
-  // }
   return timerRepo;
 }
 
@@ -66,41 +68,70 @@ Future<SettingsRepo> settingsRepo(bool isFirstRun) async {
 
 List<Timer> initialTimers() {
   return [
-    Timer(
+    Timer.initial(
       id: 0,
       name: 'stop',
       duration: Duration(seconds: 60 * 60 * 2),
-      rest: Duration(seconds: 60 * 60 * 2),
       status: TimerStatus.stop,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
+      now: DateTime.now(),
+      // startedAt: DateTime.now(),
     ),
-    Timer(
+    Timer.initial(
       id: 1,
       name: 'stop',
       duration: Duration(seconds: 125),
-      rest: Duration(seconds: 125),
       status: TimerStatus.stop,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
+      now: DateTime.now(),
     ),
-    Timer(
+    Timer.initial(
       id: 2,
       name: 'pause',
       duration: Duration(seconds: 5),
-      rest: Duration(seconds: 5),
       status: TimerStatus.pause,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
+      now: DateTime.now(),
     ),
-    Timer(
+    Timer.initial(
       id: 3,
       name: 'start',
       duration: Duration(seconds: 10),
-      rest: Duration(seconds: 10),
       status: TimerStatus.start,
-      lastUpdate: DateTime.now(),
-      startedAt: DateTime.now(),
+      now: DateTime.now(),
     ),
+    // Timer(
+    //   id: 0,
+    //   name: 'stop',
+    //   duration: Duration(seconds: 60 * 60 * 2),
+    //   rest: Duration(seconds: 60 * 60 * 2),
+    //   status: TimerStatus.stop,
+    //   lastUpdate: DateTime.now(),
+    //   startedAt: DateTime.now(),
+    // ),
+    // Timer(
+    //   id: 1,
+    //   name: 'stop',
+    //   duration: Duration(seconds: 125),
+    //   rest: Duration(seconds: 125),
+    //   status: TimerStatus.stop,
+    //   lastUpdate: DateTime.now(),
+    //   startedAt: DateTime.now(),
+    // ),
+    // Timer(
+    //   id: 2,
+    //   name: 'pause',
+    //   duration: Duration(seconds: 5),
+    //   rest: Duration(seconds: 5),
+    //   status: TimerStatus.pause,
+    //   lastUpdate: DateTime.now(),
+    //   startedAt: DateTime.now(),
+    // ),
+    // Timer(
+    //   id: 3,
+    //   name: 'start',
+    //   duration: Duration(seconds: 10),
+    //   rest: Duration(seconds: 10),
+    //   status: TimerStatus.start,
+    //   lastUpdate: DateTime.now(),
+    //   startedAt: DateTime.now(),
+    // ),
   ];
 }

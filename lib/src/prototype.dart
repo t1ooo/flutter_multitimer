@@ -2,8 +2,10 @@
 // TODO: Navigator.pushNamed
 // TODO: nullable Settings.locale, add init to Repo
 // TODO: remove countdown field, calculate countdown
+// TODO: progress bar
 
 import 'dart:async' as async;
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
@@ -19,6 +21,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'l10n/gen/app_localizations.dart';
 import 'settings.dart';
 import 'settings_repository.dart';
+import 'timer.dart';
 import 'utils/chaos_uitls.dart';
 
 // const dismissNotificationAfter = Duration(seconds: 10);
@@ -47,6 +50,11 @@ import 'utils/chaos_uitls.dart';
 //      final prefs = await SharedPreferences.getInstance();
 //      prefs.remove(_key);
 //   }
+// }
+
+// Future<void> clearSharedPreferences() async {
+//   final prefs = await SharedPreferences.getInstance();
+//   await prefs.clear();
 // }
 
 class FirstRun {
@@ -249,7 +257,7 @@ class AwesomeNotificationService implements NotificationService {
   ]) async {
     // await _init();
     _log.info('sendDelayed: $notification, $delay');
-    String localTimeZone =
+    final localTimeZone =
         await AwesomeNotifications().getLocalTimeZoneIdentifier();
     // String utcTimeZone =
     // await AwesomeNotifications().getLocalTimeZoneIdentifier();
@@ -380,7 +388,7 @@ abstract class TimerRepo {
 }
 
 class InMemoryTimerRepo implements TimerRepo {
-  static final _log = Logger('TimerRepo');
+  static final _log = Logger('InMemoryTimerRepo');
   final _timers = <int, Timer>{};
 
   Future<List<Timer>> list() async {
@@ -425,6 +433,83 @@ class InMemoryTimerRepo implements TimerRepo {
   }
 }
 
+class SharedPrefsTimerRepo implements TimerRepo {
+  static const _timerKeyPrefix = 'timer_item';
+  static const _counterKey = 'timer_counter';
+
+  @override
+  Future<Timer> create(Timer timer) async {
+    final sharedPrefs = await SharedPreferences.getInstance();
+
+    final counter = (sharedPrefs.getInt(_counterKey) ?? 0) + 1;
+    await sharedPrefs.setInt(_counterKey, counter);
+
+    final timerWithId = timer.copyWith(id: counter);
+    await sharedPrefs.setString(
+      _timerKey(timer.id),
+      jsonEncode(timer.toJson()),
+    );
+
+    return timerWithId;
+  }
+
+  // @override
+  // Future<Alarm?> get(int id) async {
+  //   final sharedPreferences = await SharedPreferences.getInstance();
+
+  //   final data = sharedPreferences.getString(_alarmKey(id));
+  //   if (data == null) {
+  //     return null;
+  //   }
+  //   return Alarm.fromJson(jsonDecode(data));
+  // }
+
+  @override
+  Future<List<Timer>> list() async {
+    final sharedPrefs = await SharedPreferences.getInstance();
+
+    return sharedPrefs.getKeys().where((key) {
+      // print(key);
+      return key.startsWith(_timerKeyPrefix);
+    }).map(
+      (key) {
+        //  print(key);
+        return Timer.fromJson(jsonDecode(sharedPrefs.getString(key)!));
+      },
+    ).toList();
+  }
+
+  // @override
+  // Future<Alarm> mustGet(int id) async {
+  //   final alarm = await get(id);
+  //   if (alarm == null) {
+  //     throw Exception('alarm not found: $id');
+  //   }
+  //   return alarm;
+  // }
+
+  @override
+  Future<void> delete(Timer timer) async {
+    final sharedPrefs = await SharedPreferences.getInstance();
+
+    await sharedPrefs.remove(_timerKey(timer.id));
+  }
+
+  @override
+  Future<void> update(Timer timer) async {
+    final sharedPrefs = await SharedPreferences.getInstance();
+
+    await sharedPrefs.setString(
+      _timerKey(timer.id),
+      jsonEncode(timer.toJson()),
+    );
+  }
+
+  String _timerKey(int id) {
+    return '$_timerKeyPrefix$id';
+  }
+}
+
 DateTime dateTime({
   int year = 0,
   int month = 1,
@@ -444,87 +529,6 @@ DateTime dateTime({
     second,
     millisecond,
     microsecond,
-  );
-}
-
-enum TimerStatus {
-  // ready,
-  start,
-  stop,
-  pause,
-  // resume,
-}
-
-class Timer extends Equatable {
-  final int id;
-  final String name;
-  final Duration duration;
-  final Duration rest;
-  final TimerStatus status;
-  final DateTime lastUpdate;
-  final DateTime startedAt;
-
-  Timer({
-    required this.id,
-    required this.name,
-    required this.duration,
-    required this.rest,
-    required this.status,
-    required this.lastUpdate,
-    required this.startedAt,
-  });
-
-  // Timer.stopped({
-  //   required this.id,
-  //   required this.name,
-  //   required this.duration,
-  // })  : countdown = duration,
-  //       status = TimerStatus.stop;
-
-  Duration calculateCountdown(DateTime now) {
-    if (status == TimerStatus.start /* || status == TimerStatus.pause */) {
-      final stopAt = startedAt.add(rest);
-      final countdown = stopAt.difference(now);
-      print('$rest, $countdown');
-      return countdown;
-    }
-    return rest;
-  }
-
-  Timer copyWith({
-    int? id,
-    String? name,
-    Duration? duration,
-    Duration? rest,
-    TimerStatus? status,
-    DateTime? lastUpdate,
-    DateTime? startedAt,
-  }) {
-    return Timer(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      duration: duration ?? this.duration,
-      rest: rest ?? this.rest,
-      status: status ?? this.status,
-      lastUpdate: lastUpdate ?? this.lastUpdate,
-      startedAt: startedAt ?? this.startedAt,
-    );
-  }
-
-  @override
-  List<Object?> get props =>
-      [id, name, duration, rest, status, lastUpdate, startedAt];
-}
-
-Timer draftTimer() {
-  return Timer(
-    id: 0,
-    name: 'timer',
-    duration: Duration(minutes: 5),
-    rest: Duration(minutes: 5),
-    status: TimerStatus.stop,
-    lastUpdate: DateTime.now(),
-    startedAt: DateTime.now(),
   );
 }
 
@@ -631,11 +635,12 @@ class TimersCubit extends Cubit<TimersCubitState> {
   Future<void> create(Timer timer) async {
     _log.info('create');
     try {
-      await timerRepo.create(timer.copyWith(
-        rest: timer.duration,
-        lastUpdate: clock.now(),
-        status: TimerStatus.stop,
-      ));
+      // await timerRepo.create(timer.copyWith(
+      //   rest: timer.duration,
+      //   lastUpdate: clock.now(),
+      //   status: TimerStatus.stop,
+      // ));
+      await timerRepo.create(timer.stop());
       final timers = await timerRepo.list();
       await _emitState(TimersCubitState(timers: timers));
     } on Exception catch (e) {
@@ -658,6 +663,7 @@ class TimersCubit extends Cubit<TimersCubitState> {
         lastUpdate: clock.now(),
         status: TimerStatus.stop,
       ));
+      // await timerRepo.update(timer.stop());
 
       // await timerRepo.delete(timer);
       // await timerRepo.create(timer.copyWith(
@@ -740,19 +746,19 @@ class TimerCubit extends Cubit<TimerCubitState> {
     this.clock,
     this.notificationService,
     this.l10n, [
-    this.saveInterval = const Duration(seconds: 10),
+    // this.saveInterval = const Duration(seconds: 10),
     this.ticker = const Ticker(),
   ]) : super(TimerCubitState(timer: timer)) {
-    if (saveInterval < const Duration(seconds: 1)) {
-      throw Exception('saveInterval should be >= than 1 second');
-    }
+    // if (saveInterval < const Duration(seconds: 1)) {
+      // throw Exception('saveInterval should be >= than 1 second');
+    // }
     _init();
   }
 
   final NotificationService notificationService;
 
   /// delay between saving the current state of the timer to the repository
-  final Duration saveInterval;
+  // final Duration saveInterval;
   final TimerRepo timerRepo;
   final Clock clock;
   final Ticker ticker;
@@ -765,13 +771,18 @@ class TimerCubit extends Cubit<TimerCubitState> {
     if (state.timer.status == TimerStatus.start) {
       // final stopAt = state.timer.startedAt.add(state.timer.countdown);
       // final countdown = stopAt.difference(clock.now()) + Duration(seconds: 2);
-      final countdown = state.timer.calculateCountdown(clock.now());
-      if (countdown <= Duration.zero) {
-        _log.info('timer ended when the app was not running: ${state.timer}');
-        _done();
-      } else {
-        _restart(countdown);
-      }
+      
+      
+      // final countdown = state.timer.countdown(clock.now());
+      // if (countdown <= Duration.zero) {
+      //   _log.info('timer ended when the app was not running: ${state.timer}');
+      //   _done();
+      // } else {
+      //   _restart(countdown);
+      // }
+      start();
+     
+     
       // if (clock
       //     .now()
       //     .isAfter(state.timer.startedAt.add(state.timer.countdown))) {
@@ -793,10 +804,11 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   Future<void> start() async {
-    final timer = state.timer.copyWith(
-      status: TimerStatus.start,
-      startedAt: clock.now(),
-    );
+    // final timer = state.timer.copyWith(
+    //   status: TimerStatus.start,
+    //   startedAt: clock.now(),
+    // );
+    final timer = state.timer.start(clock.now());
     emit(TimerCubitState(timer: timer));
 
     await _tickerSub?.cancel();
@@ -807,21 +819,22 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   /// restart timer after app restart
-  Future<void> _restart(Duration countdown) async {
-    final timer = state.timer.copyWith(
-      // status: TimerStatus.start,
-      startedAt: clock.now(),
-      // rest: countdown,
-    );
-    emit(TimerCubitState(timer: timer));
+  // Future<void> _restart(Duration countdown) async {
+  //   // final timer = state.timer.copyWith(
+  //   //   // status: TimerStatus.start,
+  //   //   startedAt: clock.now(),
+  //   //   // rest: countdown,
+  //   // );
+  //   final timer = state.timer.start(clock.now());
+  //   emit(TimerCubitState(timer: timer));
 
-    await _tickerSub?.cancel();
-    _tickerSub = ticker.tick(state.timer.duration).listen(_tick);
+  //   await _tickerSub?.cancel();
+  //   _tickerSub = ticker.tick(state.timer.duration).listen(_tick);
 
-    _sendNotification(timer);
+  //   _sendNotification(timer);
 
-    _updateTimer(timer);
-  }
+  //   _updateTimer(timer);
+  // }
 
   Future<void> stop() async {
     _done();
@@ -830,10 +843,12 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   Future<void> _done() async {
-    final timer = state.timer.copyWith(
-      status: TimerStatus.stop,
-      rest: state.timer.duration,
-    );
+    // final timer = state.timer.copyWith(
+    //   status: TimerStatus.stop,
+    //   rest: state.timer.duration,
+    // );
+    final timer = state.timer.stop();
+
     emit(TimerCubitState(timer: timer));
 
     await _tickerSub?.cancel();
@@ -842,10 +857,11 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   Future<void> pause() async {
-    final timer = state.timer.copyWith(
-      status: TimerStatus.pause,
-      rest: state.timer.calculateCountdown(clock.now()),
-    );
+    // final timer = state.timer.copyWith(
+    // status: TimerStatus.pause,
+    // rest: state.timer.countdown(clock.now()),
+    // );
+    final timer = state.timer.pause(clock.now());
     emit(TimerCubitState(timer: timer));
 
     _tickerSub?.pause();
@@ -856,10 +872,11 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   Future<void> resume() async {
-    final timer = state.timer.copyWith(
-      status: TimerStatus.start,
-      startedAt: clock.now(),
-    );
+    // final timer = state.timer.copyWith(
+    // status: TimerStatus.start,
+    // startedAt: clock.now(),
+    // );
+    final timer = state.timer.start(clock.now());
     emit(TimerCubitState(timer: timer));
 
     _tickerSub?.resume();
@@ -886,9 +903,10 @@ class TimerCubit extends Cubit<TimerCubitState> {
 
   Future<void> _sendNotification(Timer timer) async {
     await notificationService.cancel(state.timer.id);
+    // TODO: MAYBE: add method NotificationService.sendAt(Notification, DataTime)
     await notificationService.sendDelayed(
       Notification(timer.id, timer.name, l10n.notificationBody),
-      timer.calculateCountdown(clock.now()),
+      timer.countdown(clock.now()),
       [NotificationAction('stop', l10n.stopSignalButton)],
     );
   }
@@ -1257,7 +1275,7 @@ class TimerListItem extends StatelessWidget {
 
     const iconSize = 40.0;
     // timer.countdown.inSeconds
-    final fmtCountdown = formatCountdown(timer.calculateCountdown(clock.now()));
+    final fmtCountdown = formatCountdown(timer.countdown(clock.now()));
 
     return InkWell(
       child: Padding(
@@ -1408,7 +1426,7 @@ class TimerListItemV2 extends StatelessWidget {
 
     const iconSize = 40.0;
     // timer.countdown.inSeconds
-    final fmtCountdown = formatCountdown(timer.calculateCountdown(clock.now()));
+    final fmtCountdown = formatCountdown(timer.countdown(clock.now()));
 
     return InkWell(
       child: Padding(
