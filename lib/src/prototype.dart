@@ -1,6 +1,4 @@
-// TODO: Navigator.pushNamed
 // TODO: nullable Settings.locale, add init to Repo
-// TODO: add clear repos button in debug mode
 
 import 'dart:async' as async;
 import 'dart:convert';
@@ -18,6 +16,7 @@ import 'l10n/gen/app_localizations.dart';
 import 'settings.dart';
 import 'settings_repository.dart';
 import 'timer.dart';
+import 'ui_utils.dart';
 import 'utils/chaos_uitls.dart';
 
 // const dismissNotificationAfter = Duration(seconds: 10);
@@ -48,10 +47,10 @@ import 'utils/chaos_uitls.dart';
 //   }
 // }
 
-// Future<void> clearSharedPreferences() async {
-//   final prefs = await SharedPreferences.getInstance();
-//   await prefs.clear();
-// }
+Future<void> clearSharedPreferences() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.clear();
+}
 
 class FirstRun {
   FirstRun._(this._isFirstRun);
@@ -983,7 +982,7 @@ class Ticker {
 // UI --------------------------------------
 
 final dateFormat = DateFormat('HH:mm:ss');
-const pagePadding = EdgeInsets.all(20);
+// const pagePadding = EdgeInsets.all(20);
 // const pagePadding = EdgeInsets.symmetric(vertical: 20, horizontal: 20);
 
 DateTime dateTimeFromDuration(Duration duration) {
@@ -1016,23 +1015,64 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Timers'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.pushNamed(context, SettingsView.routeName);
-            },
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.settings),
+        //     onPressed: () {
+        //       // Navigator.pushNamed(context, SettingsView.routeName);
+        //       Navigator.push(
+        //         context,
+        //         MaterialPageRoute(
+        //           builder: (_) => SettingsView(),
+        //         ),
+        //       );
+        //     },
+        //   ),
+        // ],
       ),
       // body: TimerList(),
       // body: BlocProvider(
       // create: (_) => TimersCubit()..load(),
       // child: TimerList(),
       // ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+              child: Text(l10n.appTitle),
+            ),
+            ListTile(
+              title: Text(l10n.settingsTitle),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SettingsView(),
+                  ),
+                ).then((_) => Navigator.pop(context));
+              },
+            ),
+            whenDebug(
+              () => ListTile(
+                title: Text('clear shared_preferences'),
+                onTap: () {
+                  clearSharedPreferences();
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
       body: TimerList(),
 
       floatingActionButton: FloatingActionButton(
