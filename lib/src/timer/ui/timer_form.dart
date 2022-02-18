@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../l10n/gen/app_localizations.dart';
 import '../../util/date_time.dart';
 
 import '../logic/timer.dart';
 import '../logic/timers_cubit.dart';
 
+// TODO: split to methods
 class TimerForm extends StatelessWidget {
   const TimerForm({Key? key, required this.timer, required this.isNew})
       : super(key: key);
@@ -32,6 +34,9 @@ class TimerForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final l10nMaterial = MaterialLocalizations.of(context);
+
     final verticalPadding = SizedBox(height: 30);
 
     final cubit = context.read<TimersCubit>();
@@ -51,7 +56,7 @@ class TimerForm extends StatelessWidget {
               Flexible(
                 child: TextFormField(
                   decoration: InputDecoration(
-                    labelText: 'h',
+                    labelText: 'h', // TODO: MAYBE: l10n
                     border: OutlineInputBorder(),
                   ),
                   controller: hourController,
@@ -132,7 +137,7 @@ class TimerForm extends StatelessWidget {
           verticalPadding,
           TextFormField(
             decoration: InputDecoration(
-              labelText: 'name',
+              labelText: l10n.timerNameLabel,
               border: OutlineInputBorder(),
             ),
             controller: nameController,
@@ -156,7 +161,7 @@ class TimerForm extends StatelessWidget {
                     cubit.delete(timer);
                     Navigator.pop(context);
                   },
-                  child: Text('DELETE'),
+                  child: Text(l10nMaterial.deleteButtonTooltip),
                 ),
               ),
               ButtonBar(
@@ -165,7 +170,7 @@ class TimerForm extends StatelessWidget {
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    child: Text('CANCEL'),
+                    child: Text(l10nMaterial.cancelButtonLabel),
                   ),
                   ElevatedButton(
                     onPressed: () {
@@ -180,7 +185,7 @@ class TimerForm extends StatelessWidget {
                       isNew ? cubit.create(newTimer) : cubit.update(newTimer);
                       Navigator.pop(context);
                     },
-                    child: Text('SAVE'),
+                    child: Text(l10nMaterial.saveButtonLabel),
                   ),
                 ],
               ),

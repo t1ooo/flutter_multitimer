@@ -8,8 +8,6 @@ import 'settings_form.dart';
 class SettingsView extends StatelessWidget {
   const SettingsView({Key? key}) : super(key: key);
 
-  static const String routeName = '/settings';
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
