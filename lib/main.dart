@@ -15,19 +15,19 @@ Future<void> main() async {
 
   final firstRun = await FirstRun.create();
   final clock = Clock();
-  final _timerRepo = await timerRepo(firstRun.isFirstRun);
-  final _settingsRepo = await settingsRepo(firstRun.isFirstRun);
+  final timerRepo = await createTimerRepo(firstRun.isFirstRun);
+  final settingsRepo = await createSettingsRepo(firstRun.isFirstRun);
   // ignore: unawaited_futures
-  final timersCubit = TimersCubit(_timerRepo, clock)..load();
+  final timersCubit = TimersCubit(timerRepo, clock)..load();
   // ignore: unawaited_futures
-  final settingsCubit = SettingsCubit(_settingsRepo)..load();
+  final settingsCubit = SettingsCubit(settingsRepo)..load();
 
   runApp(
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider.value(value: clock),
-        RepositoryProvider.value(value: _timerRepo),
-        RepositoryProvider.value(value: await notificationService()),
+        RepositoryProvider.value(value: timerRepo),
+        RepositoryProvider.value(value: await createNotificationService()),
       ],
       child: MultiBlocProvider(
         providers: [

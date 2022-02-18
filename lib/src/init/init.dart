@@ -32,7 +32,7 @@ void configureLogger(bool debugMode) {
   });
 }
 
-Future<NotificationService> notificationService() async {
+Future<NotificationService> createNotificationService() async {
   if (Platform.isAndroid) {
     return AwesomeNotificationService.create(
       key: 'mutlitimer key',
@@ -46,7 +46,7 @@ Future<NotificationService> notificationService() async {
 }
 
 // ignore: avoid_positional_boolean_parameters
-Future<TimerRepo> timerRepo(bool isFirstRun) async {
+Future<TimerRepo> createTimerRepo(bool isFirstRun) async {
   // final timerRepo = InMemoryTimerRepo();
   final timerRepo = SharedPrefsTimerRepo();
   if (isFirstRun) {
@@ -59,7 +59,7 @@ Future<TimerRepo> timerRepo(bool isFirstRun) async {
 }
 
 // ignore: avoid_positional_boolean_parameters
-Future<SettingsRepo> settingsRepo(bool isFirstRun) async {
+Future<SettingsRepo> createSettingsRepo(bool isFirstRun) async {
   final settingsRepo = InMemorySettingsRepo();
   // if (isFirstRun) {
   // for (final timer in initialTimers()) {
