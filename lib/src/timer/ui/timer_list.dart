@@ -2,13 +2,15 @@ import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../l10n/gen/app_localizations.dart';
-import '../util/snackbar.dart';
-import 'notification_service.dart';
-import 'timer_cubit.dart';
+import '../../l10n/gen/app_localizations.dart';
+import '../../util/snackbar.dart';
+
+import '../logic/notification_service.dart';
+import '../logic/timer_cubit.dart';
+import '../logic/timer_repo.dart';
+import '../logic/timers_cubit.dart';
+
 import 'timer_list_item.dart';
-import 'timer_repo.dart';
-import 'timers_cubit.dart';
 
 class TimerList extends StatelessWidget {
   const TimerList({

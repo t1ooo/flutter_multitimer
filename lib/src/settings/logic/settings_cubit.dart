@@ -3,8 +3,8 @@ import 'dart:ui' show Locale;
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
-import '../l10n/gen/app_localizations.dart';
-import '../logging/logging.dart';
+import '../../l10n/gen/app_localizations.dart';
+import '../../logging/logging.dart';
 import 'settings.dart';
 import 'settings_repo.dart';
 

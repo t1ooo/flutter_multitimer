@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../logging/logging.dart';
+import '../../logging/logging.dart';
+
 import 'timer.dart';
 
 abstract class TimerRepo {

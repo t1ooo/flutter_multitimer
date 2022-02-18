@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../style/style.dart';
-import 'timer.dart';
+import '../../style/style.dart';
+
+import '../logic/timer.dart';
+
 import 'timer_form.dart';
 
 class TimerEditView extends StatelessWidget {
-  const TimerEditView({Key? key, required this.timer})
-      : super(key: key);
+  const TimerEditView({Key? key, required this.timer}) : super(key: key);
 
   final Timer timer;
 

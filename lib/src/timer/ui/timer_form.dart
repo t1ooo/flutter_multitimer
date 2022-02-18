@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../util/date_time.dart';
-import 'timer.dart';
-import 'timers_cubit.dart';
+import '../../util/date_time.dart';
+
+import '../logic/timer.dart';
+import '../logic/timers_cubit.dart';
 
 class TimerForm extends StatelessWidget {
   const TimerForm({Key? key, required this.timer, required this.isNew})
@@ -19,6 +20,14 @@ class TimerForm extends StatelessWidget {
 
   String _format(int n) {
     return n.toString().padLeft(2, '0');
+  }
+
+  DateTime _dateTimeFromDuration(Duration duration) {
+    return dateTime(
+      hour: duration.inSeconds ~/ (60 * 60 * 24),
+      minute: duration.inSeconds ~/ 60,
+      second: duration.inSeconds % 60,
+    );
   }
 
   @override
@@ -181,12 +190,4 @@ class TimerForm extends StatelessWidget {
       ),
     );
   }
-}
-
-DateTime _dateTimeFromDuration(Duration duration) {
-  return dateTime(
-    hour: duration.inSeconds ~/ (60 * 60 * 24),
-    minute: duration.inSeconds ~/ 60,
-    second: duration.inSeconds % 60,
-  );
 }

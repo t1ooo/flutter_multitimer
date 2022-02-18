@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:equatable/equatable.dart';
 
-import '../logging/logging.dart';
+import '../../logging/logging.dart';
 
 class Notification extends Equatable {
   const Notification(this.id, this.title, this.body);
@@ -34,7 +34,7 @@ abstract class NotificationService {
   Future<void> dispose();
 }
 
-class TimerNotificationService implements NotificationService {
+class SimpleNotificationService implements NotificationService {
   static final _log = Logger('NotificationService');
   final _timers = <int, Timer>{};
 
@@ -66,8 +66,6 @@ class TimerNotificationService implements NotificationService {
     return;
   }
 }
-
-
 
 class AwesomeNotificationService implements NotificationService {
   AwesomeNotificationService._({

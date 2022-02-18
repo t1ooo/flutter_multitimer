@@ -3,18 +3,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
-import '../l10n/gen/app_localizations.dart';
-import '../util/date_time.dart';
-import '../util/snackbar.dart';
-import 'notification_service.dart';
-import 'timer.dart';
-import 'timer_cubit.dart';
+import '../../l10n/gen/app_localizations.dart';
+import '../../util/date_time.dart';
+import '../../util/snackbar.dart';
+
+import '../logic/timer.dart';
+import '../logic/timer_cubit.dart';
+
 import 'timer_edit_view.dart';
 
 class TimerListItem extends StatelessWidget {
   const TimerListItem({
     Key? key,
   }) : super(key: key);
+
+  static final _dateFormat = DateFormat('HH:mm:ss');
+
+  String _formatCountdown(Duration countdown) {
+    final inSeconds =
+        (countdown.inMicroseconds / Duration.microsecondsPerSecond).round();
+    final dTimer = dateTime(
+      hour: inSeconds ~/ (60 * 60 * 24),
+      minute: inSeconds ~/ 60,
+      second: inSeconds % 60,
+    );
+    return _dateFormat.format(dTimer);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,17 +133,4 @@ class TimerListItem extends StatelessWidget {
       },
     );
   }
-}
-
-final _dateFormat = DateFormat('HH:mm:ss');
-
-String _formatCountdown(Duration countdown) {
-  final inSeconds =
-      (countdown.inMicroseconds / Duration.microsecondsPerSecond).round();
-  final dTimer = dateTime(
-    hour: inSeconds ~/ (60 * 60 * 24),
-    minute: inSeconds ~/ 60,
-    second: inSeconds % 60,
-  );
-  return _dateFormat.format(dTimer);
 }

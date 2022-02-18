@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../l10n/gen/app_localizations.dart';
-import '../util/snackbar.dart';
-import 'settings_cubit.dart';
+import '../../l10n/gen/app_localizations.dart';
+import '../../util/snackbar.dart';
+
+import '../logic/settings_cubit.dart';
 
 class SettingsForm extends StatelessWidget {
   const SettingsForm({Key? key}) : super(key: key);

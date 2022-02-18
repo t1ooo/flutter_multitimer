@@ -1,11 +1,12 @@
 
+import 'package:bloc/bloc.dart';
 import 'package:clock/clock.dart';
 import 'package:equatable/equatable.dart';
-import 'package:bloc/bloc.dart';
 
-import '../util/chaos.dart';
-import '../l10n/gen/app_localizations.dart';
-import '../logging/logging.dart';
+import '../../l10n/gen/app_localizations.dart';
+import '../../logging/logging.dart';
+import '../../util/chaos.dart';
+
 import 'timer.dart';
 import 'timer_repo.dart';
 

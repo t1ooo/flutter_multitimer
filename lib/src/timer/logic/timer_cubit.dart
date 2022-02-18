@@ -4,9 +4,10 @@ import 'package:bloc/bloc.dart';
 import 'package:clock/clock.dart';
 import 'package:flutter/widgets.dart' show BuildContext;
 
-import '../l10n/gen/app_localizations.dart';
-import '../logging/logging.dart';
-import '../util/chaos.dart';
+import '../../l10n/gen/app_localizations.dart';
+import '../../logging/logging.dart';
+import '../../util/chaos.dart';
+
 import 'notification_service.dart';
 import 'ticker.dart';
 import 'timer.dart';

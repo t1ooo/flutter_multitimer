@@ -2,11 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import '../logging/logging.dart';
-import '../settings/settings_repo.dart';
-import '../timer/notification_service.dart';
-import '../timer/timer.dart';
-import '../timer/timer_repo.dart';
-
+import '../settings/logic/settings_repo.dart';
+import '../timer/logic/notification_service.dart';
+import '../timer/logic/timer.dart';
+import '../timer/logic/timer_repo.dart';
 
 final _initLog = Logger('init');
 StreamSubscription<LogRecord>? _loggerSub;
@@ -43,7 +42,7 @@ Future<NotificationService> notificationService() async {
       // updateChannel: true,
     );
   }
-  return TimerNotificationService();
+  return SimpleNotificationService();
 }
 
 // ignore: avoid_positional_boolean_parameters
