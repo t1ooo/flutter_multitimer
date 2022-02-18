@@ -4,8 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'src/app.dart';
 import 'src/init.dart';
-import 'src/prototype.dart';
-
+import 'src/util/first_run.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   configureLogger();

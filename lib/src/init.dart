@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:logging/logging.dart';
 
-import 'prototype.dart';
-import 'settings_repository.dart';
-import 'timer.dart';
+import 'logging/logging.dart';
+import 'settings/settings_repo.dart';
+import 'timer/notification_service.dart';
+import 'timer/timer_repo.dart';
+import 'timer/timer.dart';
+
 
 final _initLog = Logger('init');
 StreamSubscription<LogRecord>? _loggerSub;
