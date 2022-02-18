@@ -1,0 +1,23 @@
+{
+  "timerEditTitle": "Редактировать Таймер",
+
+  "timerCreateTitle": "Создать Таймер",
+
+  "homeTitle": "Таймеры",
+  
+  "timersLoadError": "Ошибка: не удалось загрузить таймеры",
+  "timerCreateError": "Ошибка: не удалось создать таймер",
+  "timerUpdateError": "Ошибка: не удалось обновить таймер",
+  "timerDeleteError": "Ошибка: не удалось удалить таймер",
+  
+  "settingsLoadError": "Ошибка: не удалось загрузить настройки",
+  "updateLocaleError": "Ошибка: не удалось обновить локаль",
+
+  "settingsTitle": "Настройки",
+  "languageLabel": "Язык",
+
+  "notificationBody": "Таймер завершен",
+  "stopSignalButton": "ОСТАНОВИТЬ СИГНАЛ",
+
+  "appTitle": "MultiTimer"
+}

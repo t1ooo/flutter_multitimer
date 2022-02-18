@@ -1,4 +1,10 @@
 {
+  "timerEditTitle": "",
+
+  "timerCreateTitle": "",
+
+  "homeTitle": "",
+  
   "timersLoadError": "",
   "timerCreateError": "",
   "timerUpdateError": "",
@@ -14,7 +20,4 @@
   "stopSignalButton": "",
 
   "appTitle": "",
-  "@appTitle": {
-    "description": "The title of the application"
-  }
 }

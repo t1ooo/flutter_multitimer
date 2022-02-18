@@ -43,9 +43,8 @@ class TimerList extends StatelessWidget {
               context.read<Clock>(),
               context.read<NotificationService>(),
               NotificationLocalizations.of(context),
-            ), //..setLocalizations(NotificationLocalizations.of(context)),
-
-            child: TimerListItem(/* key: Key(timer.id.toString()) */),
+            ),
+            child: TimerListItem(),
           ),
       ],
     );

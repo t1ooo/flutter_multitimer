@@ -16,39 +16,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // print(Localizations.localeOf(context));
-    return MultiBlocProvider(
-      providers: [
-        // TODO: move to main ?
-        BlocProvider<TimersCubit>(
-          create: (context) =>
-              TimersCubit(context.read<TimerRepo>(), context.read<Clock>())
-                ..load(),
-        ),
-        BlocProvider<SettingsCubit>(
-          create: (context) =>
-              SettingsCubit(context.read<SettingsRepo>())..load(),
-        ),
-      ],
-      child: builder(context),
-    );
-  }
+    final localeN =
+        context.select<SettingsCubit, Locale?>((v) => v.state.settings?.locale);
 
-  Widget builder(BuildContext context) {
-    return BlocBuilder<SettingsCubit, SettingsCubitState>(
-      builder: (BuildContext context, SettingsCubitState state) {
-        return MaterialApp(
-          restorationScopeId: 'app',
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: state.settings?.locale,
-          onGenerateTitle: (BuildContext context) =>
-              AppLocalizations.of(context)!.appTitle,
-          theme: ThemeData(),
-          darkTheme: ThemeData.dark(),
-          home: HomeView(),
-        );
-      },
+    return MaterialApp(
+      restorationScopeId: 'app',
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: localeN,
+      onGenerateTitle: (BuildContext context) =>
+          AppLocalizations.of(context)!.appTitle,
+      theme: ThemeData(),
+      darkTheme: ThemeData.dark(),
+      home: HomeView(),
     );
   }
 }

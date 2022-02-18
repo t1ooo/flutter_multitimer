@@ -18,7 +18,7 @@ class HomeView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Timers'),
+        title: Text(l10n.homeTitle),
       ),
       drawer: Drawer(
         child: ListView(
