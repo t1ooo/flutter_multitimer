@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../const/ui.dart';
+import '../style/style.dart';
 import 'timer.dart';
 import 'timer_form.dart';
 

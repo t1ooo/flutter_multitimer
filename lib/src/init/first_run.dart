@@ -8,7 +8,7 @@ class FirstRun {
 
   bool get isFirstRun => _isFirstRun;
 
-  static Future<FirstRun> init() async {
+  static Future<FirstRun> create() async {
     final prefs = await SharedPreferences.getInstance();
 
     if (prefs.containsKey(_key)) {

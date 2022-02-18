@@ -1,7 +1,7 @@
+import 'dart:ui' show Locale;
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 
 import '../l10n/gen/app_localizations.dart';
 import '../logging/logging.dart';

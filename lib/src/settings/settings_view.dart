@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../const/ui.dart';
 import '../l10n/gen/app_localizations.dart';
+import '../style/style.dart';
 import 'settings_form.dart';
 
 class SettingsView extends StatelessWidget {

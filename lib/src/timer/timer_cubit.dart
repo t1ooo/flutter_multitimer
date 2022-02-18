@@ -1,16 +1,29 @@
-
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:clock/clock.dart';
+import 'package:flutter/widgets.dart' show BuildContext;
 
-import '../util/chaos.dart';
 import '../l10n/gen/app_localizations.dart';
 import '../logging/logging.dart';
+import '../util/chaos.dart';
 import 'notification_service.dart';
 import 'ticker.dart';
 import 'timer.dart';
 import 'timer_repo.dart';
+
+class NotificationLocalizations {
+  NotificationLocalizations(this.l10n);
+
+  factory NotificationLocalizations.of(BuildContext context) {
+    return NotificationLocalizations(AppLocalizations.of(context)!);
+  }
+
+  final AppLocalizations l10n;
+
+  String get notificationBody => l10n.notificationBody;
+  String get stopSignalButton => l10n.stopSignalButton;
+}
 
 enum TimerCubitError {
   update,

@@ -2,9 +2,7 @@ import 'dart:async';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 
-import '../l10n/gen/app_localizations.dart';
 import '../logging/logging.dart';
 
 class Notification extends Equatable {
@@ -16,6 +14,13 @@ class Notification extends Equatable {
 
   @override
   List<Object?> get props => [id, title, body];
+}
+
+class NotificationAction {
+  NotificationAction(this.key, this.label);
+
+  final String key;
+  final String label;
 }
 
 abstract class NotificationService {
@@ -62,25 +67,7 @@ class TimerNotificationService implements NotificationService {
   }
 }
 
-class NotificationLocalizations {
-  NotificationLocalizations(this.l10n);
 
-  factory NotificationLocalizations.of(BuildContext context) {
-    return NotificationLocalizations(AppLocalizations.of(context)!);
-  }
-
-  final AppLocalizations l10n;
-
-  String get notificationBody => l10n.notificationBody;
-  String get stopSignalButton => l10n.stopSignalButton;
-}
-
-class NotificationAction {
-  NotificationAction(this.key, this.label);
-
-  final String key;
-  final String label;
-}
 
 class AwesomeNotificationService implements NotificationService {
   AwesomeNotificationService._({
@@ -99,7 +86,7 @@ class AwesomeNotificationService implements NotificationService {
     AwesomeNotifications().dispose();
   }
 
-  static Future<AwesomeNotificationService> init({
+  static Future<AwesomeNotificationService> create({
     required String key,
     required String name,
     required String description,

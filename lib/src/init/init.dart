@@ -1,20 +1,19 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
-
-import 'logging/logging.dart';
-import 'settings/settings_repo.dart';
-import 'timer/notification_service.dart';
-import 'timer/timer_repo.dart';
-import 'timer/timer.dart';
+import '../logging/logging.dart';
+import '../settings/settings_repo.dart';
+import '../timer/notification_service.dart';
+import '../timer/timer.dart';
+import '../timer/timer_repo.dart';
 
 
 final _initLog = Logger('init');
 StreamSubscription<LogRecord>? _loggerSub;
 
-void configureLogger() {
-  if (!kDebugMode) {
+// ignore: avoid_positional_boolean_parameters
+void configureLogger(bool debugMode) {
+  if (!debugMode) {
     return;
   }
   if (_loggerSub != null) {
@@ -36,7 +35,7 @@ void configureLogger() {
 
 Future<NotificationService> notificationService() async {
   if (Platform.isAndroid) {
-    return AwesomeNotificationService.init(
+    return AwesomeNotificationService.create(
       key: 'mutlitimer key',
       name: 'mutlitimer name',
       description: 'mutlitimer desc',
