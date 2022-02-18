@@ -47,7 +47,6 @@ Future<NotificationService> createNotificationService() async {
 
 // ignore: avoid_positional_boolean_parameters
 Future<TimerRepo> createTimerRepo(bool isFirstRun) async {
-  // final timerRepo = InMemoryTimerRepo();
   final timerRepo = SharedPrefsTimerRepo();
   if (isFirstRun) {
     _initLog.info('populate timer repo');
@@ -60,12 +59,7 @@ Future<TimerRepo> createTimerRepo(bool isFirstRun) async {
 
 // ignore: avoid_positional_boolean_parameters
 Future<SettingsRepo> createSettingsRepo(bool isFirstRun) async {
-  final settingsRepo = InMemorySettingsRepo();
-  // if (isFirstRun) {
-  // for (final timer in initialTimers()) {
-  // await timerRepo.create(timer);
-  // }
-  // }
+  final settingsRepo = SharedPrefsSettingsRepo();
   return settingsRepo;
 }
 
