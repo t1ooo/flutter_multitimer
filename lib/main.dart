@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'src/app.dart';
 import 'src/init.dart';
 import 'src/util/first_run.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   configureLogger();
@@ -15,7 +16,8 @@ Future<void> main() async {
       providers: [
         RepositoryProvider.value(value: Clock()),
         RepositoryProvider.value(
-            value: await settingsRepo(firstRun.isFirstRun)),
+          value: await settingsRepo(firstRun.isFirstRun),
+        ),
         RepositoryProvider.value(value: await timerRepo(firstRun.isFirstRun)),
         RepositoryProvider.value(
           value: await notificationService(),
