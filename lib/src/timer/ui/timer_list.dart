@@ -37,7 +37,6 @@ class TimerList extends StatelessWidget {
           BlocProvider(
             // we need key in BlocProvider to update TimerCubit when timer is updated
             key: Key('${timer.id} ${timer.lastUpdate}'),
-            // key: Key('${timer.id} ${timer.lastUpdate} ${AppLocalizations.of(context)!}'),
             create: (_) => TimerCubit(
               timer,
               context.read<TimerRepo>(),
