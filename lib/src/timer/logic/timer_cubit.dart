@@ -79,7 +79,6 @@ class TimerCubit extends Cubit<TimerCubitState> {
   StreamSubscription<Duration>? _tickerSub;
   NotificationLocalizations l10n;
   static final _log = Logger('TimerCubit');
-  // static const notificationId = 0;
 
   void _init() {
     // resume started timer after app restart
