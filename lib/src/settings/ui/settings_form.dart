@@ -13,7 +13,6 @@ class SettingsForm extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    // _localeController.value = settings.locale;
     final cubit = context.watch<SettingsCubit>();
 
     if (cubit.state.error != null) {
