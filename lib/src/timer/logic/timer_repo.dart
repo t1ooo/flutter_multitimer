@@ -67,8 +67,8 @@ class SharedPrefsTimerRepo implements TimerRepo {
 
     final timerWithId = timer.copyWith(id: counter);
     await sharedPrefs.setString(
-      _timerKey(timer.id),
-      jsonEncode(timer.toJson()),
+      _timerKey(timerWithId.id),
+      jsonEncode(timerWithId.toJson()),
     );
 
     return timerWithId;

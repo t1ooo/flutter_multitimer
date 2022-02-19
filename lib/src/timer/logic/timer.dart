@@ -37,11 +37,9 @@ class Timer extends Equatable {
     required this.id,
     required this.name,
     required this.duration,
-    required this.status,
     required DateTime now,
-    // required this.lastUpdate,
-    // required this.startedAt,
-  })  : rest = duration,
+  })  : status = TimerStatus.stop,
+        rest = duration,
         lastUpdate = now,
         startedAt = now;
 

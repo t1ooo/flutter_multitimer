@@ -5,6 +5,7 @@ import '../../l10n/gen/app_localizations.dart';
 import '../../settings/ui/settings_view.dart';
 import '../../timer/ui/timer_create_button.dart';
 import '../../timer/ui/timer_list.dart';
+import '../../util/debug.dart';
 import '../../util/shared_prefs.dart';
 
 class HomeView extends StatelessWidget {
@@ -41,14 +42,15 @@ class HomeView extends StatelessWidget {
                 ).then((_) => Navigator.pop(context));
               },
             ),
-            if (kDebugMode)
-              ListTile(
+            whenDebug(
+              () => ListTile(
                 title: Text('clear shared_preferences'),
                 onTap: () {
                   clearSharedPreferences();
                   Navigator.pop(context);
                 },
               ),
+            ),
           ],
         ),
       ),
