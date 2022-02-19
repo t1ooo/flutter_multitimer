@@ -4,11 +4,9 @@ import 'package:json_annotation/json_annotation.dart';
 part 'timer.g.dart';
 
 enum TimerStatus {
-  // ready,
   start,
   stop,
   pause,
-  // resume,
 }
 
 @JsonSerializable()
@@ -33,15 +31,22 @@ class Timer extends Equatable {
     }
   }
 
-  Timer.initial({
-    required this.id,
-    required this.name,
-    required this.duration,
+  factory Timer.initial({
+    required int id,
+    required String name,
+    required Duration duration,
     required DateTime now,
-  })  : status = TimerStatus.stop,
-        rest = duration,
-        lastUpdate = now,
-        startedAt = now;
+  }) {
+    return Timer(
+      id: id,
+      name: name,
+      duration: duration,
+      rest: duration,
+      status: TimerStatus.stop,
+      lastUpdate: now,
+      startedAt: now,
+    );
+  }
 
   final int id;
   final String name;
@@ -82,10 +87,9 @@ class Timer extends Equatable {
   }
 
   Duration countdown(DateTime now) {
-    if (status == TimerStatus.start /* || status == TimerStatus.pause */) {
+    if (status == TimerStatus.start) {
       final stopAt = startedAt.add(rest);
       final countdown = stopAt.difference(now);
-      // print('$rest, $countdown');
       return countdown;
     }
     return rest;
@@ -120,15 +124,11 @@ class Timer extends Equatable {
   Map<String, dynamic> toJson() => _$TimerToJson(this);
 }
 
-// TODO: MAYBE: move to Timer
-Timer draftTimer() {
-  return Timer(
+Timer draftTimer(DateTime now) {
+  return Timer.initial(
     id: 0,
-    name: 'timer',
+    name: 'Timer',
     duration: Duration(minutes: 5),
-    rest: Duration(minutes: 5),
-    status: TimerStatus.stop,
-    lastUpdate: DateTime.now(),
-    startedAt: DateTime.now(),
+    now: DateTime.now(),
   );
 }

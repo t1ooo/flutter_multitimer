@@ -17,7 +17,9 @@ class TimerListItem extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  static final _dateFormat = DateFormat('HH:mm:ss');
+  // TODO: hide clock if not present
+  static final _dateFormatHms = DateFormat('HH:mm:ss');
+  static final _dateFormatMs = DateFormat('mm:ss');
 
   String _formatCountdown(Duration countdown) {
     final inSeconds =
@@ -27,7 +29,7 @@ class TimerListItem extends StatelessWidget {
       minute: inSeconds ~/ 60,
       second: inSeconds % 60,
     );
-    return _dateFormat.format(dTimer);
+    return ((dTimer.hour > 0) ? _dateFormatHms : _dateFormatMs).format(dTimer);
   }
 
   @override
@@ -68,7 +70,7 @@ class TimerListItem extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${timer.name} ${timer.id}'),
+                      Text('${timer.name}'),
                       SizedBox(height: 5),
                       Text(
                         fmtCountdown,

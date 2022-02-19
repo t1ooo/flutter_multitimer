@@ -1,9 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../l10n/gen/app_localizations.dart';
 import '../../settings/ui/settings_view.dart';
-import '../../timer/ui/timer_create_button.dart';
+import '../../timer/ui/timer_create_view.dart';
 import '../../timer/ui/timer_list.dart';
 import '../../util/debug.dart';
 import '../../util/shared_prefs.dart';
@@ -55,7 +54,17 @@ class HomeView extends StatelessWidget {
         ),
       ),
       body: TimerList(),
-      floatingActionButton: TimerCreateButton(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TimerCreateView(),
+            ),
+          );
+        },
+        child: Icon(Icons.add),
+      ),
     );
   }
 }

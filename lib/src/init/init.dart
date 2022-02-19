@@ -67,19 +67,19 @@ List<Timer> initialTimers() {
   return [
     Timer.initial(
       id: 0,
-      name: 'focus',
+      name: 'Focus',
       duration: Duration(minutes: 25),
       now: DateTime.now(),
     ),
     Timer.initial(
       id: 0,
-      name: 'break',
+      name: 'Break',
       duration: Duration(minutes: 5),
       now: DateTime.now(),
     ),
     Timer.initial(
       id: 0,
-      name: 'long break',
+      name: 'Long Break',
       duration: Duration(minutes: 15),
       now: DateTime.now(),
     ),
