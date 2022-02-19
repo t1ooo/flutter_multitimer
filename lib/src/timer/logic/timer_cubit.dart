@@ -195,7 +195,6 @@ class TimerCubit extends Cubit<TimerCubitState> {
   }
 
   void setLocalizations(NotificationLocalizations l10n) {
-    // print('setLocalizations');
     this.l10n = l10n;
   }
 

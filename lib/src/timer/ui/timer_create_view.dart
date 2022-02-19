@@ -15,6 +15,7 @@ class TimerCreateView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+
     final clock = context.read<Clock>();
 
     return Scaffold(
