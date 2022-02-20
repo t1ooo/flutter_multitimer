@@ -38,26 +38,29 @@ void configureLogger(bool debugMode) {
   });
 }
 
-Future<NotificationService> createNotificationService() async {
+Future<NotificationService> createNotificationService(bool debugMode) async {
   if (Platform.isAndroid) {
     return AwesomeNotificationService.create(
-      key: 'mutlitimer key',
-      name: 'mutlitimer name',
-      description: 'mutlitimer desc',
-      // l10n: NotificationLocalizations(),
-      // updateChannel: true,
+      key: 'multi timer key',
+      name: 'multi timer name',
+      description: 'multi timer desc',
+      updateChannel: debugMode,
     );
   }
   return SimpleNotificationService();
 }
 
 // ignore: avoid_positional_boolean_parameters
-Future<TimerRepo> createTimerRepo(Locale locale, bool isFirstRun) async {
+Future<TimerRepo> createTimerRepo(
+  Locale locale, {
+  required bool isFirstRun,
+  required bool debugMode,
+}) async {
   final timerRepo = SharedPrefsTimerRepo();
   if (isFirstRun) {
     _initLog.info('populate timer repo');
     final l10n = await loadAppLocalizations(locale);
-    for (final timer in initialTimers(l10n)) {
+    for (final timer in initialTimers(l10n, debugMode)) {
       await timerRepo.create(timer);
     }
   }
@@ -74,11 +77,12 @@ Future<SettingsRepo> createSettingsRepo(Locale locale, bool isFirstRun) async {
   return settingsRepo;
 }
 
-List<Timer> initialTimers(AppLocalizations l10n) {
+// ignore: avoid_positional_boolean_parameters
+List<Timer> initialTimers(AppLocalizations l10n, bool debugMode) {
   return [
     Timer.initial(
       id: 0,
-      name: l10n.timerNameFocus, 
+      name: l10n.timerNameFocus,
       duration: Duration(minutes: 25),
       now: DateTime.now(),
     ),
@@ -94,5 +98,19 @@ List<Timer> initialTimers(AppLocalizations l10n) {
       duration: Duration(minutes: 15),
       now: DateTime.now(),
     ),
+    if (debugMode) ...[
+      Timer.initial(
+        id: 0,
+        name: 'debug 5 sec',
+        duration: Duration(seconds: 5),
+        now: DateTime.now(),
+      ),
+      Timer.initial(
+        id: 0,
+        name: 'debug 20 sec',
+        duration: Duration(seconds: 20),
+        now: DateTime.now(),
+      ),
+    ]
   ];
 }

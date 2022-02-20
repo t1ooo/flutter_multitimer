@@ -19,9 +19,13 @@ Future<void> main() async {
   print('detectLocale: $locale');
   final isFirstRun = await firstRun();
   final clock = Clock();
-  final timerRepo = await createTimerRepo(locale, isFirstRun);
+  final timerRepo = await createTimerRepo(
+    locale,
+    isFirstRun: isFirstRun,
+    debugMode: kDebugMode,
+  );
   final settingsRepo = await createSettingsRepo(locale, isFirstRun);
-  final notificationService = await createNotificationService();
+  final notificationService = await createNotificationService(kDebugMode);
   // ignore: unawaited_futures
   final timersCubit = TimersCubit(timerRepo, clock)..load();
   // ignore: unawaited_futures
