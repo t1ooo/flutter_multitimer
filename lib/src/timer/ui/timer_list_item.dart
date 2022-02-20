@@ -57,7 +57,6 @@ class TimerListItem extends StatelessWidget {
     return GestureDetector(
       child: Card(
         child: Padding(
-          // padding: pagePadding,
           padding: EdgeInsets.all(20),
           child: Column(
             children: [
@@ -65,18 +64,19 @@ class TimerListItem extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(timer.name),
-                      SizedBox(height: 5),
-                      Text(
-                        fmtCountdown,
-                        style: TextStyle(fontSize: 25),
-                      ),
-                    ],
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(timer.name, overflow: TextOverflow.ellipsis),
+                        SizedBox(height: 5),
+                        Text(
+                          fmtCountdown,
+                          style: TextStyle(fontSize: 25),
+                        ),
+                      ],
+                    ),
                   ),
-                  // _info(context),
                   ButtonBar(
                     children: [
                       if (timer.status == TimerStatus.stop) ...[
@@ -96,7 +96,6 @@ class TimerListItem extends StatelessWidget {
               ),
               SizedBox(height: 10),
               LinearProgressIndicator(value: progress),
-              // SizedBox(height: 10),
             ],
           ),
         ),
