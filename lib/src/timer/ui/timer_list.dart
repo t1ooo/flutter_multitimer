@@ -1,15 +1,13 @@
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../clock/clock.dart';
 import '../../l10n/gen/app_localizations.dart';
 import '../../util/snackbar.dart';
-
 import '../logic/notification_service.dart';
 import '../logic/timer_cubit.dart';
 import '../logic/timer_repo.dart';
 import '../logic/timers_cubit.dart';
-
 import 'timer_list_item.dart';
 
 class TimerList extends StatelessWidget {

@@ -95,6 +95,10 @@ class Timer extends Equatable {
     return rest;
   }
 
+  // double progress(DateTime now) {
+  //   return 1 - (countdown(now).inMicroseconds / duration.inMicroseconds);
+  // }
+
   Timer copyWith({
     int? id,
     String? name,

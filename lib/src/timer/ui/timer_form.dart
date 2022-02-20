@@ -222,8 +222,10 @@ class TimerForm extends StatelessWidget {
           minutes: int.parse(_minuteController.text),
           seconds: int.parse(_secondController.text),
         );
+
         final newTimer = timer.copyWith(duration: duration, name: name);
         isNew ? cubit.create(newTimer) : cubit.update(newTimer);
+
         Navigator.pop(context);
       },
       child: Text(l10nMaterial.saveButtonLabel),

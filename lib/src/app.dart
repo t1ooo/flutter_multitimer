@@ -1,13 +1,9 @@
-import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'home/ui/home_view.dart';
 import 'l10n/gen/app_localizations.dart';
 import 'settings/logic/settings_cubit.dart';
-import 'settings/logic/settings_repo.dart';
-import 'timer/logic/timer_repo.dart';
-import 'timer/logic/timers_cubit.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({
