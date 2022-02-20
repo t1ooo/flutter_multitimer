@@ -123,12 +123,3 @@ class Timer extends Equatable {
 
   Map<String, dynamic> toJson() => _$TimerToJson(this);
 }
-
-Timer draftTimer(DateTime now) {
-  return Timer.initial(
-    id: 0,
-    name: 'Timer',
-    duration: Duration(minutes: 5),
-    now: DateTime.now(),
-  );
-}

@@ -71,8 +71,8 @@ class SettingsCubit extends Cubit<SettingsCubitState> {
     _log.info('update');
     try {
       {
-        final settings = (await settingsRepo.get()) ?? Settings(locale: locale);
-        await settingsRepo.update(settings.copyWith(locale: locale));
+        final settings = await settingsRepo.get();
+        await settingsRepo.update(settings!.copyWith(locale: locale));
       }
       final settings = await settingsRepo.get();
       emit(SettingsCubitState(settings: settings));

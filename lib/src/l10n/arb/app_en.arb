@@ -1,4 +1,9 @@
 {
+  "timerNameDraft": "Timer",
+  "timerNameFocus": "Focus",
+  "timerNameBreak": "Break",
+  "timerNameLongBreak": "Long Break",
+
   "timerEditTitle": "Edit Timer",
   "timerCreateTitle": "Create Timer",
   "timerNameLabel": "Name",

@@ -24,8 +24,17 @@ class TimerCreateView extends StatelessWidget {
       ),
       body: Padding(
         padding: pagePadding,
-        child: TimerForm(timer: draftTimer(clock.now()), isNew: true),
+        child: TimerForm(timer: _draftTimer(l10n, clock.now()), isNew: true),
       ),
+    );
+  }
+
+  Timer _draftTimer(AppLocalizations l10n, DateTime now) {
+    return Timer.initial(
+      id: 0,
+      name: l10n.timerNameDraft,
+      duration: Duration(minutes: 5),
+      now: DateTime.now(),
     );
   }
 }

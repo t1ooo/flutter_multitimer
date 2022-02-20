@@ -6,6 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'src/app.dart';
 import 'src/init/first_run.dart';
 import 'src/init/init.dart';
+import 'src/init/locale.dart';
+import 'src/l10n/gen/app_localizations.dart';
 import 'src/settings/logic/settings_cubit.dart';
 import 'src/timer/logic/timers_cubit.dart';
 
@@ -13,10 +15,13 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   configureLogger(kDebugMode);
 
-  final firstRun = await FirstRun.create();
+  final locale = detectLocale(AppLocalizations.supportedLocales);
+  print('detectLocale: $locale');
+  final isFirstRun = await firstRun();
   final clock = Clock();
-  final timerRepo = await createTimerRepo(firstRun.isFirstRun);
-  final settingsRepo = await createSettingsRepo(firstRun.isFirstRun);
+  final timerRepo = await createTimerRepo(locale, isFirstRun);
+  final settingsRepo = await createSettingsRepo(locale, isFirstRun);
+  final notificationService = await createNotificationService();
   // ignore: unawaited_futures
   final timersCubit = TimersCubit(timerRepo, clock)..load();
   // ignore: unawaited_futures
@@ -27,7 +32,7 @@ Future<void> main() async {
       providers: [
         RepositoryProvider.value(value: clock),
         RepositoryProvider.value(value: timerRepo),
-        RepositoryProvider.value(value: await createNotificationService()),
+        RepositoryProvider.value(value: notificationService),
       ],
       child: MultiBlocProvider(
         providers: [

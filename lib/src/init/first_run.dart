@@ -1,9 +1,10 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+const _key = '_is_first_run';
+
 class FirstRun {
   FirstRun._(this._isFirstRun);
 
-  static const _key = '_is_first_run';
   bool _isFirstRun;
 
   bool get isFirstRun => _isFirstRun;
@@ -24,4 +25,14 @@ class FirstRun {
     await prefs.remove(_key);
     _isFirstRun = true;
   }
+}
+
+Future<bool> firstRun() async {
+  final prefs = await SharedPreferences.getInstance();
+  if (prefs.containsKey(_key)) {
+    return false;
+  }
+
+  await prefs.setBool(_key, true);
+  return true;
 }

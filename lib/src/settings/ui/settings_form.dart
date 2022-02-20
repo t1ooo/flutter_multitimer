@@ -30,7 +30,7 @@ class SettingsForm extends StatelessWidget {
               for (final locale in AppLocalizations.supportedLocales)
                 DropdownMenuItem<Locale>(
                   value: locale,
-                  child: Text(locale.toString()),
+                  child: Text(locale.name),
                 ),
             ],
             value: Localizations.localeOf(context),
@@ -48,5 +48,17 @@ class SettingsForm extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+extension LocaleName on Locale {
+  String get name {
+    switch (languageCode) {
+      case 'en':
+        return 'english';
+      case 'ru':
+        return 'русский';
+    }
+    return languageCode;
   }
 }

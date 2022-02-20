@@ -5,7 +5,7 @@ import '../../settings/ui/settings_view.dart';
 import '../../timer/ui/timer_create_view.dart';
 import '../../timer/ui/timer_list.dart';
 import '../../util/debug.dart';
-import '../../util/shared_prefs.dart';
+import '../logic/shared_prefs.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({

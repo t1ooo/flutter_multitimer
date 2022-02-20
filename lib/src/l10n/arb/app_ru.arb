@@ -1,4 +1,9 @@
 {
+  "timerNameDraft": "Таймер",
+  "timerNameFocus": "Фокус",
+  "timerNameBreak": "Короткий Перерыв",
+  "timerNameLongBreak": "Перерыв",
+
   "timerEditTitle": "Редактировать Таймер",
   "timerCreateTitle": "Создать Таймер",
   "timerNameLabel": "Название",
