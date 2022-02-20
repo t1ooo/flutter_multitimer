@@ -19,7 +19,7 @@ class TimerListItem extends StatelessWidget {
 
   static final _dateFormatHms = DateFormat('HH:mm:ss');
   static final _dateFormatMs = DateFormat('mm:ss');
-  static const _iconSize = 50.0;
+  static const _iconSize = 40.0;
 
   String _formatCountdown(Duration countdown) {
     final inSeconds =
@@ -82,11 +82,11 @@ class TimerListItem extends StatelessWidget {
                         _startButton(cubit),
                       ] else if (timer.status == TimerStatus.pause) ...[
                         _stopButton(cubit),
-                        SizedBox(width: 10),
+                        SizedBox(width: 5),
                         _resumeButton(cubit),
                       ] else ...[
                         _stopButton(cubit),
-                        SizedBox(width: 10),
+                        SizedBox(width: 5),
                         _pauseButton(cubit),
                       ],
                     ],

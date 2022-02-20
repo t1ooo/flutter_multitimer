@@ -95,16 +95,20 @@ class AwesomeNotificationService implements NotificationService {
       channelName: name,
       channelDescription: description,
       importance: NotificationImportance.Max,
-      playSound: false,
+      playSound: true,
+      enableVibration: true,
       defaultPrivacy: NotificationPrivacy.Public,
+      defaultRingtoneType: DefaultRingtoneType.Ringtone,
     );
 
     await AwesomeNotifications().initialize(null, []);
     if (updateChannel) {
+      _log.info('update notifications channel');
       await AwesomeNotifications().removeChannel(key);
     }
     await AwesomeNotifications().setChannel(
       notificationChannel,
+      forceUpdate: true,
     );
     return AwesomeNotificationService._(
       key: key,
@@ -141,7 +145,7 @@ class AwesomeNotificationService implements NotificationService {
         title: notification.title,
         body: notification.body,
         wakeUpScreen: true,
-        fullScreenIntent: true,
+        fullScreenIntent: false,
         category: NotificationCategory.Alarm,
       ),
       schedule: NotificationInterval(
