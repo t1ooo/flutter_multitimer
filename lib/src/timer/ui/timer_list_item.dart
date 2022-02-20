@@ -19,7 +19,7 @@ class TimerListItem extends StatelessWidget {
 
   static final _dateFormatHms = DateFormat('HH:mm:ss');
   static final _dateFormatMs = DateFormat('mm:ss');
-  static const _iconSize = 40.0;
+  static const _iconSize = 50.0;
 
   String _formatCountdown(Duration countdown) {
     final inSeconds =
@@ -49,7 +49,6 @@ class TimerListItem extends StatelessWidget {
 
     final timer = cubit.state.timer;
 
-    // timer.countdown.inSeconds
     final countdown = timer.countdown(clock.now());
     final fmtCountdown = _formatCountdown(countdown);
     final progress =
@@ -77,6 +76,7 @@ class TimerListItem extends StatelessWidget {
                       ),
                     ],
                   ),
+                  // _info(context),
                   ButtonBar(
                     children: [
                       if (timer.status == TimerStatus.stop) ...[
@@ -110,28 +110,8 @@ class TimerListItem extends StatelessWidget {
     );
   }
 
-  Widget _info(BuildContext context) {
-    final cubit = context.watch<TimerCubit>();
-    final clock = context.read<Clock>();
-    final timer = cubit.state.timer;
-    final countdown = timer.countdown(clock.now());
-    final fmtCountdown = _formatCountdown(countdown);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(timer.name),
-        SizedBox(height: 5),
-        Text(
-          fmtCountdown,
-          style: TextStyle(fontSize: 25),
-        ),
-      ],
-    );
-  }
-
   Widget _startButton(BuildContext context) {
-    final cubit = context.watch<TimerCubit>();
+    final cubit = context.read<TimerCubit>();
 
     return ElevatedButton(
       child: Icon(Icons.play_arrow, size: _iconSize),
@@ -142,7 +122,7 @@ class TimerListItem extends StatelessWidget {
   }
 
   Widget _stopButton(BuildContext context) {
-    final cubit = context.watch<TimerCubit>();
+    final cubit = context.read<TimerCubit>();
 
     return ElevatedButton(
       child: Icon(Icons.stop, size: _iconSize),
@@ -153,7 +133,7 @@ class TimerListItem extends StatelessWidget {
   }
 
   Widget _pauseButton(BuildContext context) {
-    final cubit = context.watch<TimerCubit>();
+    final cubit = context.read<TimerCubit>();
 
     return ElevatedButton(
       child: Icon(Icons.pause, size: _iconSize),
