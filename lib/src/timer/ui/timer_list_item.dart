@@ -17,7 +17,6 @@ class TimerListItem extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  // TODO: hide clock if not present
   static final _dateFormatHms = DateFormat('HH:mm:ss');
   static final _dateFormatMs = DateFormat('mm:ss');
 
