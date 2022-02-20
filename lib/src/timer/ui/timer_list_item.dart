@@ -19,6 +19,7 @@ class TimerListItem extends StatelessWidget {
 
   static final _dateFormatHms = DateFormat('HH:mm:ss');
   static final _dateFormatMs = DateFormat('mm:ss');
+  static const _iconSize = 40.0;
 
   String _formatCountdown(Duration countdown) {
     final inSeconds =
@@ -48,7 +49,6 @@ class TimerListItem extends StatelessWidget {
 
     final timer = cubit.state.timer;
 
-    const iconSize = 40.0;
     // timer.countdown.inSeconds
     final countdown = timer.countdown(clock.now());
     final fmtCountdown = _formatCountdown(countdown);
@@ -59,7 +59,7 @@ class TimerListItem extends StatelessWidget {
       child: Card(
         child: Padding(
           // padding: pagePadding,
-          padding: EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 20),
+          padding: EdgeInsets.all(20),
           child: Column(
             children: [
               Row(
@@ -69,7 +69,7 @@ class TimerListItem extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${timer.name}'),
+                      Text(timer.name),
                       SizedBox(height: 5),
                       Text(
                         fmtCountdown,
@@ -80,40 +80,15 @@ class TimerListItem extends StatelessWidget {
                   ButtonBar(
                     children: [
                       if (timer.status == TimerStatus.stop) ...[
-                        ElevatedButton(
-                          child: Icon(Icons.play_arrow, size: iconSize),
-                          onPressed: () {
-                            cubit.start();
-                          },
-                        )
+                        _startButton(context),
                       ] else if (timer.status == TimerStatus.pause) ...[
-                        ElevatedButton(
-                          child: Icon(Icons.stop, size: iconSize),
-                          onPressed: () {
-                            cubit.stop();
-                          },
-                        ),
+                        _stopButton(context),
                         SizedBox(width: 10),
-                        ElevatedButton(
-                          child: Icon(Icons.play_arrow, size: iconSize),
-                          onPressed: () {
-                            cubit.start();
-                          },
-                        ),
+                        _startButton(context),
                       ] else ...[
-                        ElevatedButton(
-                          child: Icon(Icons.stop, size: iconSize),
-                          onPressed: () {
-                            cubit.stop();
-                          },
-                        ),
+                        _stopButton(context),
                         SizedBox(width: 10),
-                        ElevatedButton(
-                          child: Icon(Icons.pause, size: iconSize),
-                          onPressed: () {
-                            cubit.pause();
-                          },
-                        ),
+                        _pauseButton(context),
                       ],
                     ],
                   ),
@@ -131,6 +106,59 @@ class TimerListItem extends StatelessWidget {
           context,
           MaterialPageRoute(builder: (_) => TimerEditView(timer: timer)),
         );
+      },
+    );
+  }
+
+  Widget _info(BuildContext context) {
+    final cubit = context.watch<TimerCubit>();
+    final clock = context.read<Clock>();
+    final timer = cubit.state.timer;
+    final countdown = timer.countdown(clock.now());
+    final fmtCountdown = _formatCountdown(countdown);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(timer.name),
+        SizedBox(height: 5),
+        Text(
+          fmtCountdown,
+          style: TextStyle(fontSize: 25),
+        ),
+      ],
+    );
+  }
+
+  Widget _startButton(BuildContext context) {
+    final cubit = context.watch<TimerCubit>();
+
+    return ElevatedButton(
+      child: Icon(Icons.play_arrow, size: _iconSize),
+      onPressed: () {
+        cubit.start();
+      },
+    );
+  }
+
+  Widget _stopButton(BuildContext context) {
+    final cubit = context.watch<TimerCubit>();
+
+    return ElevatedButton(
+      child: Icon(Icons.stop, size: _iconSize),
+      onPressed: () {
+        cubit.stop();
+      },
+    );
+  }
+
+  Widget _pauseButton(BuildContext context) {
+    final cubit = context.watch<TimerCubit>();
+
+    return ElevatedButton(
+      child: Icon(Icons.pause, size: _iconSize),
+      onPressed: () {
+        cubit.pause();
       },
     );
   }

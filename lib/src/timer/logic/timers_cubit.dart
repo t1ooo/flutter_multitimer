@@ -1,4 +1,3 @@
-
 import 'package:bloc/bloc.dart';
 import 'package:clock/clock.dart';
 import 'package:equatable/equatable.dart';
@@ -58,7 +57,6 @@ class TimersCubitState extends Equatable {
 class TimersCubit extends Cubit<TimersCubitState> {
   TimersCubit(this.timerRepo, this.clock) : super(TimersCubitState());
 
-  // Future<List<Timer>>? _timers;
   final TimerRepo timerRepo;
   final Clock clock;
   static final _log = Logger('TimersCubit');

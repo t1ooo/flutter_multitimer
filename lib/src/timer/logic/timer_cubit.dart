@@ -71,13 +71,12 @@ class TimerCubit extends Cubit<TimerCubitState> {
     _init();
   }
 
-  final NotificationService notificationService;
-
   final TimerRepo timerRepo;
   final Clock clock;
+  final NotificationService notificationService;
   final Ticker ticker;
-  StreamSubscription<Duration>? _tickerSub;
   NotificationLocalizations l10n;
+  StreamSubscription<Duration>? _tickerSub;
   static final _log = Logger('TimerCubit');
 
   void _init() {

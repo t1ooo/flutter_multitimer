@@ -24,7 +24,10 @@ class TimerCreateView extends StatelessWidget {
       ),
       body: Padding(
         padding: pagePadding,
-        child: TimerForm(timer: _draftTimer(l10n, clock.now()), isNew: true),
+        child: TimerForm(
+          timer: _draftTimer(l10n, clock.now()),
+          isNew: true,
+        ),
       ),
     );
   }
@@ -34,7 +37,7 @@ class TimerCreateView extends StatelessWidget {
       id: 0,
       name: l10n.timerNameDraft,
       duration: Duration(minutes: 5),
-      now: DateTime.now(),
+      now: clock.now(),
     );
   }
 }

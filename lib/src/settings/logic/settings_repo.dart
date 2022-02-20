@@ -6,7 +6,6 @@ import 'settings.dart';
 
 abstract class SettingsRepo {
   Future<Settings?> get();
-  // Future<Settings> mustGet();
   Future<void> update(Settings alarm);
 }
 
@@ -17,15 +16,6 @@ class InMemorySettingsRepo implements SettingsRepo {
   Future<Settings?> get() async {
     return _settings;
   }
-
-  // @override
-  // Future<Settings> mustGet() async {
-  //   final settings = await get();
-  //   if (settings == null) {
-  //     throw Exception('settings not found');
-  //   }
-  //   return settings;
-  // }
 
   @override
   Future<void> update(Settings settings) async {
@@ -46,15 +36,6 @@ class SharedPrefsSettingsRepo implements SettingsRepo {
     }
     return Settings.fromJson(jsonDecode(data) as Map<String, dynamic>);
   }
-
-  // @override
-  // Future<Settings> mustGet() async {
-  //   final settings = await get();
-  //   if (settings == null) {
-  //     throw Exception('settings not found');
-  //   }
-  //   return settings;
-  // }
 
   @override
   Future<void> update(Settings settings) async {
