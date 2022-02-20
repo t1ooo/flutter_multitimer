@@ -34,12 +34,7 @@ class TimerForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final l10nMaterial = MaterialLocalizations.of(context);
-
     final verticalPadding = SizedBox(height: 30);
-
-    final cubit = context.read<TimersCubit>();
 
     final durationDateTime = _dateTimeFromDuration(timer.duration);
     hourController.text = _format(durationDateTime.hour);
@@ -53,146 +48,183 @@ class TimerForm extends StatelessWidget {
         children: [
           Row(
             children: [
-              Flexible(
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'h', // TODO: MAYBE: l10n
-                    border: OutlineInputBorder(),
-                  ),
-                  controller: hourController,
-                  onFieldSubmitted: (String value) {
-                    final controller = hourController;
-                    if (value == '') {
-                      controller.text = '00';
-                      return;
-                    }
-                    final num = int.tryParse(value);
-                    if (num == null || num < 0) {
-                      controller.text = '00';
-                      return;
-                    }
-                  },
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                ),
-              ),
+              hourField(context),
               SizedBox(width: 10),
-              Flexible(
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'm',
-                    border: OutlineInputBorder(),
-                  ),
-                  controller: minuteController,
-                  onFieldSubmitted: (String value) {
-                    final controller = minuteController;
-                    if (value == '') {
-                      controller.text = '00';
-                      return;
-                    }
-                    final num = int.tryParse(value);
-                    if (num == null || num < 0) {
-                      controller.text = '00';
-                      return;
-                    }
-                    if (59 < num) {
-                      controller.text = '59';
-                      return;
-                    }
-                  },
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                ),
-              ),
+              minuteField(context),
               SizedBox(width: 10),
-              Flexible(
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 's',
-                    border: OutlineInputBorder(),
-                  ),
-                  controller: secondController,
-                  onFieldSubmitted: (String value) {
-                    final controller = secondController;
-                    if (value == '') {
-                      controller.text = '00';
-                      return;
-                    }
-                    final num = int.tryParse(value);
-                    if (num == null || num < 0) {
-                      controller.text = '00';
-                      return;
-                    }
-                    if (59 < num) {
-                      controller.text = '59';
-                      return;
-                    }
-                  },
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                ),
-              ),
+              secondField(context),
             ],
           ),
           verticalPadding,
-          TextFormField(
-            decoration: InputDecoration(
-              labelText: l10n.timerNameLabel,
-              border: OutlineInputBorder(),
-            ),
-            controller: nameController,
-            onFieldSubmitted: (String value) {
-              final controller = nameController;
-              if (value == '') {
-                controller.text = timer.name;
-                return;
-              }
-            },
-            textInputAction: TextInputAction.done,
-          ),
+          nameField(context),
           verticalPadding,
           ButtonBar(
             alignment: MainAxisAlignment.spaceBetween,
             children: [
-              Visibility(
-                visible: !isNew,
-                child: ElevatedButton(
-                  onPressed: () {
-                    cubit.delete(timer);
-                    Navigator.pop(context);
-                  },
-                  child: Text(l10nMaterial.deleteButtonTooltip),
-                ),
-              ),
+              deleteButton(context),
               ButtonBar(
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text(l10nMaterial.cancelButtonLabel),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      final name = nameController.text;
-                      final duration = Duration(
-                        hours: int.parse(hourController.text),
-                        minutes: int.parse(minuteController.text),
-                        seconds: int.parse(secondController.text),
-                      );
-                      final newTimer =
-                          timer.copyWith(duration: duration, name: name);
-                      isNew ? cubit.create(newTimer) : cubit.update(newTimer);
-                      Navigator.pop(context);
-                    },
-                    child: Text(l10nMaterial.saveButtonLabel),
-                  ),
+                  cancelButton(context),
+                  saveButton(context),
                 ],
               ),
             ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget hourField(BuildContext context) {
+    return Flexible(
+      child: TextFormField(
+        decoration: InputDecoration(
+          labelText: 'h', // TODO: MAYBE: l10n
+          border: OutlineInputBorder(),
+        ),
+        controller: hourController,
+        onFieldSubmitted: (String value) {
+          final controller = hourController;
+          if (value == '') {
+            controller.text = '00';
+            return;
+          }
+          final num = int.tryParse(value);
+          if (num == null || num < 0) {
+            controller.text = '00';
+            return;
+          }
+        },
+        keyboardType: TextInputType.number,
+        textInputAction: TextInputAction.next,
+      ),
+    );
+  }
+
+  Widget minuteField(BuildContext context) {
+    return Flexible(
+      child: TextFormField(
+        decoration: InputDecoration(
+          labelText: 'm',
+          border: OutlineInputBorder(),
+        ),
+        controller: minuteController,
+        onFieldSubmitted: (String value) {
+          final controller = minuteController;
+          if (value == '') {
+            controller.text = '00';
+            return;
+          }
+          final num = int.tryParse(value);
+          if (num == null || num < 0) {
+            controller.text = '00';
+            return;
+          }
+          if (59 < num) {
+            controller.text = '59';
+            return;
+          }
+        },
+        keyboardType: TextInputType.number,
+        textInputAction: TextInputAction.next,
+      ),
+    );
+  }
+
+  Widget secondField(BuildContext context) {
+    return Flexible(
+      child: TextFormField(
+        decoration: InputDecoration(
+          labelText: 's',
+          border: OutlineInputBorder(),
+        ),
+        controller: secondController,
+        onFieldSubmitted: (String value) {
+          final controller = secondController;
+          if (value == '') {
+            controller.text = '00';
+            return;
+          }
+          final num = int.tryParse(value);
+          if (num == null || num < 0) {
+            controller.text = '00';
+            return;
+          }
+          if (59 < num) {
+            controller.text = '59';
+            return;
+          }
+        },
+        keyboardType: TextInputType.number,
+        textInputAction: TextInputAction.next,
+      ),
+    );
+  }
+
+  Widget nameField(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return TextFormField(
+      decoration: InputDecoration(
+        labelText: l10n.timerNameLabel,
+        border: OutlineInputBorder(),
+      ),
+      controller: nameController,
+      onFieldSubmitted: (String value) {
+        final controller = nameController;
+        if (value == '') {
+          controller.text = timer.name;
+          return;
+        }
+      },
+      textInputAction: TextInputAction.done,
+    );
+  }
+
+  Widget deleteButton(BuildContext context) {
+    final l10nMaterial = MaterialLocalizations.of(context);
+    final cubit = context.read<TimersCubit>();
+
+    return Visibility(
+      visible: !isNew,
+      child: ElevatedButton(
+        onPressed: () {
+          cubit.delete(timer);
+          Navigator.pop(context);
+        },
+        child: Text(l10nMaterial.deleteButtonTooltip),
+      ),
+    );
+  }
+
+  Widget cancelButton(BuildContext context) {
+    final l10nMaterial = MaterialLocalizations.of(context);
+
+    return ElevatedButton(
+      onPressed: () {
+        Navigator.pop(context);
+      },
+      child: Text(l10nMaterial.cancelButtonLabel),
+    );
+  }
+
+  Widget saveButton(BuildContext context) {
+    final l10nMaterial = MaterialLocalizations.of(context);
+    final cubit = context.read<TimersCubit>();
+
+    return ElevatedButton(
+      onPressed: () {
+        final name = nameController.text;
+        final duration = Duration(
+          hours: int.parse(hourController.text),
+          minutes: int.parse(minuteController.text),
+          seconds: int.parse(secondController.text),
+        );
+        final newTimer = timer.copyWith(duration: duration, name: name);
+        isNew ? cubit.create(newTimer) : cubit.update(newTimer);
+        Navigator.pop(context);
+      },
+      child: Text(l10nMaterial.saveButtonLabel),
     );
   }
 }
