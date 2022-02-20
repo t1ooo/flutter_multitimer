@@ -7,15 +7,17 @@ import '../../util/date_time.dart';
 import '../logic/timer.dart';
 import '../logic/timers_cubit.dart';
 
-// TODO: split to methods
 class TimerForm extends StatelessWidget {
-  const TimerForm({Key? key, required this.timer, required this.isNew})
-      : super(key: key);
+  const TimerForm({
+    Key? key,
+    required this.timer,
+    required this.isNew,
+  }) : super(key: key);
 
-  static final hourController = TextEditingController();
-  static final minuteController = TextEditingController();
-  static final secondController = TextEditingController();
-  static final nameController = TextEditingController();
+  static final _hourController = TextEditingController();
+  static final _minuteController = TextEditingController();
+  static final _secondController = TextEditingController();
+  static final _nameController = TextEditingController();
 
   final bool isNew;
   final Timer timer;
@@ -37,22 +39,22 @@ class TimerForm extends StatelessWidget {
     final verticalPadding = SizedBox(height: 30);
 
     final durationDateTime = _dateTimeFromDuration(timer.duration);
-    hourController.text = _format(durationDateTime.hour);
-    minuteController.text = _format(durationDateTime.minute);
-    secondController.text = _format(durationDateTime.second);
+    _hourController.text = _format(durationDateTime.hour);
+    _minuteController.text = _format(durationDateTime.minute);
+    _secondController.text = _format(durationDateTime.second);
 
-    nameController.text = timer.name;
+    _nameController.text = timer.name;
 
     return Form(
       child: Column(
         children: [
           Row(
             children: [
-              hourField(context),
+              _hourField(context),
               SizedBox(width: 10),
-              minuteField(context),
+              _minuteField(context),
               SizedBox(width: 10),
-              secondField(context),
+              _secondField(context),
             ],
           ),
           verticalPadding,
@@ -61,11 +63,11 @@ class TimerForm extends StatelessWidget {
           ButtonBar(
             alignment: MainAxisAlignment.spaceBetween,
             children: [
-              deleteButton(context),
+              _deleteButton(context),
               ButtonBar(
                 children: [
-                  cancelButton(context),
-                  saveButton(context),
+                  _cancelButton(context),
+                  _saveButton(context),
                 ],
               ),
             ],
@@ -75,16 +77,16 @@ class TimerForm extends StatelessWidget {
     );
   }
 
-  Widget hourField(BuildContext context) {
+  Widget _hourField(BuildContext context) {
     return Flexible(
       child: TextFormField(
         decoration: InputDecoration(
           labelText: 'h', // TODO: MAYBE: l10n
           border: OutlineInputBorder(),
         ),
-        controller: hourController,
+        controller: _hourController,
         onFieldSubmitted: (String value) {
-          final controller = hourController;
+          final controller = _hourController;
           if (value == '') {
             controller.text = '00';
             return;
@@ -101,16 +103,16 @@ class TimerForm extends StatelessWidget {
     );
   }
 
-  Widget minuteField(BuildContext context) {
+  Widget _minuteField(BuildContext context) {
     return Flexible(
       child: TextFormField(
         decoration: InputDecoration(
           labelText: 'm',
           border: OutlineInputBorder(),
         ),
-        controller: minuteController,
+        controller: _minuteController,
         onFieldSubmitted: (String value) {
-          final controller = minuteController;
+          final controller = _minuteController;
           if (value == '') {
             controller.text = '00';
             return;
@@ -131,16 +133,16 @@ class TimerForm extends StatelessWidget {
     );
   }
 
-  Widget secondField(BuildContext context) {
+  Widget _secondField(BuildContext context) {
     return Flexible(
       child: TextFormField(
         decoration: InputDecoration(
           labelText: 's',
           border: OutlineInputBorder(),
         ),
-        controller: secondController,
+        controller: _secondController,
         onFieldSubmitted: (String value) {
-          final controller = secondController;
+          final controller = _secondController;
           if (value == '') {
             controller.text = '00';
             return;
@@ -169,9 +171,9 @@ class TimerForm extends StatelessWidget {
         labelText: l10n.timerNameLabel,
         border: OutlineInputBorder(),
       ),
-      controller: nameController,
+      controller: _nameController,
       onFieldSubmitted: (String value) {
-        final controller = nameController;
+        final controller = _nameController;
         if (value == '') {
           controller.text = timer.name;
           return;
@@ -181,7 +183,7 @@ class TimerForm extends StatelessWidget {
     );
   }
 
-  Widget deleteButton(BuildContext context) {
+  Widget _deleteButton(BuildContext context) {
     final l10nMaterial = MaterialLocalizations.of(context);
     final cubit = context.read<TimersCubit>();
 
@@ -197,7 +199,7 @@ class TimerForm extends StatelessWidget {
     );
   }
 
-  Widget cancelButton(BuildContext context) {
+  Widget _cancelButton(BuildContext context) {
     final l10nMaterial = MaterialLocalizations.of(context);
 
     return ElevatedButton(
@@ -208,17 +210,17 @@ class TimerForm extends StatelessWidget {
     );
   }
 
-  Widget saveButton(BuildContext context) {
+  Widget _saveButton(BuildContext context) {
     final l10nMaterial = MaterialLocalizations.of(context);
     final cubit = context.read<TimersCubit>();
 
     return ElevatedButton(
       onPressed: () {
-        final name = nameController.text;
+        final name = _nameController.text;
         final duration = Duration(
-          hours: int.parse(hourController.text),
-          minutes: int.parse(minuteController.text),
-          seconds: int.parse(secondController.text),
+          hours: int.parse(_hourController.text),
+          minutes: int.parse(_minuteController.text),
+          seconds: int.parse(_secondController.text),
         );
         final newTimer = timer.copyWith(duration: duration, name: name);
         isNew ? cubit.create(newTimer) : cubit.update(newTimer);
