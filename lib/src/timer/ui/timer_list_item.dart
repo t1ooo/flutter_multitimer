@@ -84,7 +84,7 @@ class TimerListItem extends StatelessWidget {
                       ] else if (timer.status == TimerStatus.pause) ...[
                         _stopButton(context),
                         SizedBox(width: 10),
-                        _startButton(context),
+                        _resumeButton(context),
                       ] else ...[
                         _stopButton(context),
                         SizedBox(width: 10),
@@ -139,6 +139,17 @@ class TimerListItem extends StatelessWidget {
       child: Icon(Icons.pause, size: _iconSize),
       onPressed: () {
         cubit.pause();
+      },
+    );
+  }
+
+  Widget _resumeButton(BuildContext context) {
+    final cubit = context.read<TimerCubit>();
+
+    return ElevatedButton(
+      child: Icon(Icons.play_arrow_outlined, size: _iconSize),
+      onPressed: () {
+        cubit.resume();
       },
     );
   }
