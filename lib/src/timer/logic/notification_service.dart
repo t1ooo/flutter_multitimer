@@ -108,7 +108,7 @@ class AwesomeNotificationService implements NotificationService {
     }
     await AwesomeNotifications().setChannel(
       notificationChannel,
-      forceUpdate: true,
+      // forceUpdate: true,
     );
     return AwesomeNotificationService._(
       key: key,

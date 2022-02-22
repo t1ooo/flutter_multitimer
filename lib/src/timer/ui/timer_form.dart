@@ -67,7 +67,7 @@ class TimerForm extends StatelessWidget {
               ButtonBar(
                 children: [
                   _cancelButton(context),
-                  _saveButton(context),
+                  _saveButton(context, timer),
                 ],
               ),
             ],
@@ -210,12 +210,18 @@ class TimerForm extends StatelessWidget {
     );
   }
 
-  Widget _saveButton(BuildContext context) {
+  Widget _saveButton(BuildContext context, Timer timer) {
     final l10nMaterial = MaterialLocalizations.of(context);
     final cubit = context.read<TimersCubit>();
 
     return ElevatedButton(
-      onPressed: () {
+      onPressed: () async {
+        if (!isNew &&
+            timer.status != TimerStatus.stop &&
+            !await showStopTimerDialog(context)) {
+          return;
+        }
+
         final name = _nameController.text;
         final duration = Duration(
           hours: int.parse(_hourController.text),
@@ -224,11 +230,36 @@ class TimerForm extends StatelessWidget {
         );
 
         final newTimer = timer.copyWith(duration: duration, name: name);
+        // ignore: unawaited_futures
         isNew ? cubit.create(newTimer) : cubit.update(newTimer);
 
         Navigator.pop(context);
       },
       child: Text(l10nMaterial.saveButtonLabel),
     );
+  }
+
+  Future<bool> showStopTimerDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final l10nMaterial = MaterialLocalizations.of(context);
+
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(l10n.stopTimerDialogTitle),
+        content: Text(l10n.stopTimerDialogContent),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10nMaterial.cancelButtonLabel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10nMaterial.okButtonLabel),
+          ),
+        ],
+      ),
+    );
+    return ok ?? false;
   }
 }

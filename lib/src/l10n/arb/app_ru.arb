@@ -7,6 +7,8 @@
   "timerEditTitle": "Редактировать Таймер",
   "timerCreateTitle": "Создать Таймер",
   "timerNameLabel": "Название",
+  "stopTimerDialogTitle": "Остановить таймер?",
+  "stopTimerDialogContent": "Таймер будет остановлен",
 
   "homeTitle": "Таймеры",
   

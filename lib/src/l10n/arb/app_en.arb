@@ -7,6 +7,8 @@
   "timerEditTitle": "Edit Timer",
   "timerCreateTitle": "Create Timer",
   "timerNameLabel": "Name",
+  "stopTimerDialogTitle": "Stop the timer?",
+  "stopTimerDialogContent": "The timer will be stopped",
 
   "homeTitle": "Timers",
   

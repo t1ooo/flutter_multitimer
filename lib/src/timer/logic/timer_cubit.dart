@@ -97,7 +97,6 @@ class TimerCubit extends Cubit<TimerCubitState> {
   @override
   Future<void> close() async {
     _log.info('close: ${state.timer}');
-    // _tickerSub?.cancel();
     await _cancelTicker();
     await notificationService.cancel(state.timer.id);
     return super.close();
@@ -108,12 +107,12 @@ class TimerCubit extends Cubit<TimerCubitState> {
     _logTimer('start', timer);
     emit(TimerCubitState(timer: timer));
 
-    // await _tickerSub?.cancel();
-    // _tickerSub = ticker.tick().listen(_tick);
     await _listenTicker();
 
-    unawaited(_sendNotification(timer));
-    unawaited(_updateTimer(timer));
+    // ignore: unawaited_futures
+    _sendNotification(timer);
+    // ignore: unawaited_futures
+    _updateTimer(timer);
   }
 
   Future<void> _resumeStarted() async {
@@ -121,18 +120,20 @@ class TimerCubit extends Cubit<TimerCubitState> {
     _logTimer('_resumeStarted', timer);
     emit(TimerCubitState(timer: timer));
 
-    // await _tickerSub?.cancel();
-    // _tickerSub = ticker.tick().listen(_tick);
     await _listenTicker();
 
     // no need to send a notification because we already sent a delayed notification when we started the timer
 
-    unawaited(_updateTimer(timer));
+    // ignore: unawaited_futures
+    _updateTimer(timer);
   }
 
   Future<void> stop() async {
-    unawaited(_done());
-    unawaited(notificationService.cancel(state.timer.id));
+    // ignore: unawaited_futures
+    _done();
+
+    // ignore: unawaited_futures
+    notificationService.cancel(state.timer.id);
   }
 
   Future<void> _done() async {
@@ -141,10 +142,10 @@ class TimerCubit extends Cubit<TimerCubitState> {
 
     emit(TimerCubitState(timer: timer));
 
-    // await _tickerSub?.cancel();
     await _cancelTicker();
 
-    unawaited(_updateTimer(timer));
+    // ignore: unawaited_futures
+    _updateTimer(timer);
   }
 
   Future<void> pause() async {
@@ -152,12 +153,13 @@ class TimerCubit extends Cubit<TimerCubitState> {
     _logTimer('pause', timer);
     emit(TimerCubitState(timer: timer));
 
-    // _tickerSub?.pause();
     await _cancelTicker();
 
-    unawaited(notificationService.cancel(timer.id));
+    // ignore: unawaited_futures
+    notificationService.cancel(timer.id);
 
-    unawaited(_updateTimer(timer));
+    // ignore: unawaited_futures
+    _updateTimer(timer);
   }
 
   Future<void> resume() async {
@@ -165,25 +167,22 @@ class TimerCubit extends Cubit<TimerCubitState> {
     _logTimer('resume', timer);
     emit(TimerCubitState(timer: timer));
 
-    // if (_tickerSub == null) {
-    //   _tickerSub = ticker.tick().listen(_tick);
-    // } else {
-    //   _tickerSub?.resume();
-    // }
     await _listenTicker();
 
-    unawaited(_sendNotification(timer));
+    // ignore: unawaited_futures
+    _sendNotification(timer);
 
-    unawaited(_updateTimer(timer));
+    // ignore: unawaited_futures
+    _updateTimer(timer);
   }
 
   Future<void> _tick(Duration _) async {
-    // print(state.timer.countdown(clock.now()));
     if (state.timer.countdown(clock.now()) < Duration.zero) {
       final timer = state.timer.copyWith();
       emit(TimerCubitState(timer: timer));
       await Future.delayed(Duration(seconds: 1));
-      unawaited(_done());
+      // ignore: unawaited_futures
+      _done();
       return;
     }
 
@@ -194,7 +193,6 @@ class TimerCubit extends Cubit<TimerCubitState> {
 
   Future<void> _sendNotification(Timer timer) async {
     await notificationService.cancel(state.timer.id);
-    // TODO: MAYBE: add method NotificationService.sendAt(Notification, DataTime)
     await notificationService.sendDelayed(
       Notification(timer.id, timer.name, l10n.notificationBody),
       timer.countdown(clock.now()) + Duration(seconds: 1),
