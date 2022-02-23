@@ -6,6 +6,18 @@ import '../../util/snackbar.dart';
 
 import '../logic/settings_cubit.dart';
 
+// SettingsCubit watchSettingsCubit(BuildContext context) => context.watch<SettingsCubit>();
+// SettingsCubit settingsCubitProvider(BuildContext context, {bool listen=false}) => 
+  // Provider.of<SettingsCubit>(context, listen: listen);
+
+// P<SettingsCubit> settingsCubitProvider = P<SettingsCubit>();
+
+// class P<T> {
+//   T watch(BuildContext context) => context.watch<T>();
+//   T read(BuildContext context) => context.read<T>();
+// }
+
+// TODO: add compact list mode
 class SettingsForm extends StatelessWidget {
   const SettingsForm({Key? key}) : super(key: key);
 

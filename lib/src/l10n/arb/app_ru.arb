@@ -23,7 +23,7 @@
   "settingsTitle": "Настройки",
   "languageLabel": "Язык",
 
-  "notificationBody": "Таймер завершен",
+  "notificationBody": "Таймер завершен в",
   "stopSignalButton": "ОСТАНОВИТЬ СИГНАЛ",
 
   "appTitle": "MultiTimer"

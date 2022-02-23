@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:flutter/widgets.dart' show BuildContext;
+import 'package:intl/intl.dart';
 
 import '../../clock/clock.dart';
 import '../../l10n/gen/app_localizations.dart';
@@ -191,12 +192,17 @@ class TimerCubit extends Cubit<TimerCubitState> {
     emit(TimerCubitState(timer: timer));
   }
 
+  static final _dateFormat = DateFormat('HH:mm:ss');
+
   Future<void> _sendNotification(Timer timer) async {
     await notificationService.cancel(state.timer.id);
+
+    final delay = timer.countdown(clock.now()) + Duration(seconds: 1);
+    final endTime = _dateFormat.format(clock.now().add(delay));
     await notificationService.sendDelayed(
-      Notification(timer.id, timer.name, l10n.notificationBody),
-      timer.countdown(clock.now()) + Duration(seconds: 1),
-      [NotificationAction('stop', l10n.stopSignalButton)],
+      Notification(timer.id, timer.name, '${l10n.notificationBody} $endTime'),
+      delay,
+      // [NotificationAction('stop', l10n.stopSignalButton)],
     );
   }
 

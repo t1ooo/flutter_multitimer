@@ -97,6 +97,7 @@ class AwesomeNotificationService implements NotificationService {
       importance: NotificationImportance.Max,
       playSound: true,
       enableVibration: true,
+      vibrationPattern: highVibrationPattern,
       defaultPrivacy: NotificationPrivacy.Public,
       defaultRingtoneType: DefaultRingtoneType.Ringtone,
     );
@@ -144,9 +145,13 @@ class AwesomeNotificationService implements NotificationService {
         channelKey: key,
         title: notification.title,
         body: notification.body,
-        wakeUpScreen: true,
+        wakeUpScreen: false,
         fullScreenIntent: false,
-        category: NotificationCategory.Alarm,
+        category: NotificationCategory.Reminder,
+        autoDismissible: true,
+        displayOnForeground: true,
+        displayOnBackground: true,
+        showWhen: true,
       ),
       schedule: NotificationInterval(
         interval: delay.inSeconds,

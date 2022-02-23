@@ -23,7 +23,7 @@
   "settingsTitle": "Settings",
   "languageLabel": "Language",
 
-  "notificationBody": "Time's up",
+  "notificationBody": "Time's up at",
   "stopSignalButton": "STOP SIGNAL",
 
   "appTitle": "MultiTimer"
